@@ -1,6 +1,6 @@
 - RStudio Programming and desenvolviment of data analysis !
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/R_logo.svg/1200px-R_logo.svg.png" alt="imagem description" width="550" height="400">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/R_logo.svg/1200px-R_logo.svg.png" alt="imagem description" width="500" height="350">
 
 - URL(Imagem) : https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/R_logo.svg/1200px-R_logo.svg.png
 
