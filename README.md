@@ -1,4 +1,4 @@
-# RStudio Programming and desenvolviment of data analysis ! #
+# Linguagem R para Análises de Dados básicas ! #
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/R_logo.svg/1200px-R_logo.svg.png" alt="imagem description" width="500" height="350">
 
