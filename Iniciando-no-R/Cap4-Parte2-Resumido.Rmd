@@ -1,0 +1,150 @@
+---
+title: "Cap4-Parte2-Resumido"
+author: "Carlos Souza"
+date: "18/03/2021"
+output: pdf_document
+---
+
+4.4 Manipulações com R base
+
+  Dominar a manipulação de data frames e vetores é muito importante. Em geral, toda manipulação pode ser feita com o R base, mas acreditamos que utilizando técnicas do tidyverse a atividade fica bem mais fácil.
+  Portanto, utilizaremos o dplyr, um dos principais pacotes do tidyverse. Porém, alguns conceitos do R base são clássicos e precisam ser dominados.
+  
+4.4.1 Trabalhando com colunas de um data.frame
+  Para selecionar ou trabalhar separadamente com apenas um campo (coluna) do seu data.frame, deve-se utilizar o $. 
+  
+  Repare nas funções abaixo e no uso do sifrão.
+  
+| > head(airquality$Ozone)
+| > ## [1] 41 36 12 18 NA 28
+| > tail(airquality$Ozone)
+| > ## [1] 14 30 NA 14 18 20
+
+4.4. MANIPULAÇÕES COM R BASE 37
+
+| > class(airquality$Ozone) # Informa o tipo da coluna
+| > ## [1] "integer"
+| > is.vector(airquality$Ozone) # Apenas para verificar que cada coluna de um   | > data.frame é um vector
+| > ## [1] TRUE
+| > unique(senado$Party) # Função que retorna apenas os valores únicos, sem |   | > repetição, de um vetor
+| > ## [1] "PSDB" "PT" "PRB" "PDT" "PR" "PFL/DEM" "PMDB"
+| > ## [8] "PP" "PSB" "PTB" "PCdoB" "PSOL" "S/PART" "PSC"
+| > ## [15] "PV1"
+
+  Em todas as comparações do R usamos operadores lógicos. São operações matemáticas em que o resultado é TRUE ou FALSE (tipo logic). Para melhor entendimento, selecionamos alguns operadores lógicos e seus significados:
+  
+  • == igual a: compara dois objetos e se forem iguais retorna TRUE, caso contrário, FALSE;
+--------------------------------------------------------------------------------
+  • != diferente: compara dois objetos e se forem diferentes retorna TRUE, caso contrário, FALSE;
+--------------------------------------------------------------------------------
+  • | ou (or): compara dois objetos, se um dos dois for TRUE, retorna TRUE, se os dois forem FALSE, retorna FALSE;
+--------------------------------------------------------------------------------
+  • & e (and): compara dois objetos, se os dois forem TRUE, retorna TRUE, se um dos dois ou os dois forem FALSE, retorna FALSE;
+--------------------------------------------------------------------------------
+  • >, >=, <, <= maior, maior ou igual, menor, menor ou igual: compara grandeza de dois números e retorna TRUE ou FALSE conforme a condição;
+--------------------------------------------------------------------------------
+  
+  É possível fazer muita coisa com o R base, porém, vamos avançar com as manipulações, utilizando o pacote dplyr, por ser mais simples e, por isso, de mais rápido aprendizado.
+  
+4.5 Pacote dplyr
+  O forte do pacote dplyr é a sintaxe simples e concisa, o que facilita o aprendizado e torna o pacote um dos preferidos para as tarefas do dia a dia. Também conta como ponto forte sua otimização de performance para manipulação de dados. Ao carregar o pacote tidyverse, você já carregará automaticamente o pacote dplyr, mas você também pode carregá-lo individualmente:
+
+| > install.packages("dplyr") |
+| > library(dplyr)            |
+| > ?dplyr                    |
+
+4.5.1 Verbetes do dplyr e o operador %>%
+  O dplyr cobre praticamente todas as tarefas básicas da manipulação de dados: agregar, sumarizar, filtrar, ordenar, criar variáveis, joins, dentre outras.
+As funções do dplyr reproduzem as principais tarefas da manipulação, de forma bastante intuitiva. Veja só:
+
+  • select()
+  • filter()
+  • arrange()
+  • mutate()
+  • group_by()
+  • summarise()
+  
+  O operador %>% encadeia as chamadas de funções de forma que você não vai precisar ficar chamando uma função dentro da outra ou ficar fazendo atribuições usando diversas linhas para concluir suas manipulações.
+  
+4.5.2 Select
+  O select() é a função mais simples de ser entendida. É usada para selecionar variáveis (colunas, campos, features...) do seu data frame.
+  
+| > senadores.partido <- senado %>% select(SenatorUpper, Party) |
+|                                                               |
+| > head(senadores.partido)                                     |
+| > ## # A tibble: 6 x 2                                        |
+| > ## SenatorUpper Party                                       |
+| > ## <chr> <chr>                                              |
+| > ## 1 FLEXA RIBEIRO PSDB                                     |
+| > ## 2 ARTHUR VIRGILIO PSDB                                   |
+| > ## 3 FLAVIO ARNS PT                                         |
+| > ## 4 MARCELO CRIVELLA PRB                                   |
+| > ## 5 JOAO DURVAL PDT                                        |
+| > ## 6 PAULO PAIM PT                                          |
+
+4.5.3 Filter
+
+  Além de escolher apenas alguns campos, você pode escolher apenas algumas linhas, utilizando alguma condição como filtragem. Para isso, basta utilizar a função filter.
+
+| > senadores.pdt.df <- senado %>%             |
+|  select(SenatorUpper, Party, State) %>%      |
+|  filter(State == 'RJ', Party == 'PMDB') %>%  |
+|  distinct() #semelhante ao unique()          |
+|                                              |
+| > head(senadores.pdt.df)                     |
+| > ## # A tibble: 2 x 3                       |
+| > ## SenatorUpper Party State                |
+| > ## <chr> <chr> <chr>                       |
+| > ## 1 PAULO DUQUE PMDB RJ                   |
+| > ## 2 REGIS FICHTNER PMDB RJ                |
+
+4.5.4 Mutate
+  Para criar novos campos, podemos usar o mutate:
+  
+| > senadores.pdt.df <- senado %>%            |
+| > select(SenatorUpper, Party, State) %>%    |
+| > filter(Party == 'PMDB') %>%               |
+| > distinct() #semelhante ao unique()        |
+| > head(senadores.pdt.df)                    |
+| > ## # A tibble: 6 x 3                      |
+| > ## SenatorUpper Party State               |
+| > ## <chr> <chr> <chr>                      |
+| > ## 1 MAO SANTA PMDB PI                    |
+| > ## 2 GILVAM BORGES PMDB AP                |
+| > ## 3 VALDIR RAUPP PMDB RO                 |
+| > ## 4 GARIBALDI ALVES FILHO PMDB RN        |
+| > ## 5 GERSON CAMATA PMDB ES                |
+| > ## 6 JARBAS VASCONCELOS PMDB PE           |
+
+4.5.6 Arrange
+
+  A função arrange() serve para organizar os dados em sua ordenação. Costuma ser uma das últimas operações, normalmente usada para organizar os dados e facilitar visualizações ou criação de relatórios. Utilizando o exemplo anterior, gostaríamos de ordenar os meses pelas menores médias de decolagem (para ordens decrescentes basta usar o sinal de menos -)
+
+| > media <- flights %>%                                        |
+| >   group_by(month) %>%                                       |
+| >   summarise(arr_delay_media = mean(arr_delay, na.rm=TRUE),  |
+| >   dep_delay_media = mean(dep_delay, na.rm=TRUE)) %>%        |
+| > arrange(dep_delay_media)                                    |
+|                                                               |
+| > media                                                       |
+| > ## # A tibble: 12 x 3                                       |
+| > ## month arr_delay_media dep_delay_media                    |
+| > ## <int> <dbl> <dbl>                                        |
+| > ## 1 11 0.4613474 5.435362                                  |
+| > ## 2 10 -0.1670627 6.243988                                 |
+| > ## 3 9 -4.0183636 6.722476                                  |
+| > ## 4 1 6.1299720 10.036665                                  |
+| > ## 5 2 5.6130194 10.816843                                  |
+| > ## 6 8 6.0406524 12.611040                                  |
+| > ## 7 5 3.5215088 12.986859                                  |
+| > ## 8 3 5.8075765 13.227076                                  |
+| > ## 9 4 11.1760630 13.938038                                 |
+| > ## 10 12 14.8703553 16.576688                               |
+| > ## 11 6 16.4813296 20.846332                                |
+| > ## 12 7 16.7113067 21.727787                                |
+
+4.5.7 O operador %>%
+  Observe novamente as manipulações feitas acima. Repare que apenas acrescentamos verbetes e encadeamos a manipulação com o uso de %>%.
+  A primeira parte serie.orig %>% é a passagem onde você informa o data.frame que utilizará na sequência de manipulação. A partir daí, as chamadas seguintes select() %>%, filter() %>%, mutate() %>% etc, são os encadeamentos de manipulação que você pode fazer sem precisar atribuir resultados ou criar novos
+objetos. 
+  Em outras palavras, usando o operador %>%, você estará informando que um resultado da operação anterior será a entrada para a nova operação. Esse encadeamento facilita muito as coisas, tornando a manipulação mais legível e intuitiva.
