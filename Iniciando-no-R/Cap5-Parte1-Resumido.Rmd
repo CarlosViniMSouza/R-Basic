@@ -1,0 +1,94 @@
+---
+title: "Cap5-Resumido"
+author: "Carlos Souza"
+date: "20/03/2021"
+output: word_document
+---
+
+Capítulo 5
+
+Limpando dados
+
+  No dia a dia de quem trabalha com dados, infelizmente, é muito comum se deparar com dados formatados de um jeito bastante complicado de se manipular. Isso acontece pois a forma de se trabalhar com dados é muito diferente da forma de se apresentar ou visualizar dados. Resumindo: “olhar” dados requer uma estrutura bem diferente de “mexer” com dados. Limpeza de dados também é considerada parte da manipulação de
+dados.
+
+5.1 O formato “ideal” dos dados
+  É importante entender um pouco mais sobre como os dados podem ser estruturados antes de entrarmos nas funções de limpeza. O formato ideal para analisar dados, visualmente, é diferente do formato ideal para analisá-los de forma sistemática.
+  Há uma espécie de regra geral a qual diz que um dado bem estruturado deve conter uma única variável em uma coluna e uma única observação em uma linha.
+Observando-se a primeira tabela, com essa regra em mente, podemos perceber que as observações de ano estão organizadas em colunas. Apesar de estar num formato ideal para análise visual, esse formato dificulta bastante certas análises sistemáticas. O melhor a se fazer é converter a primeira tabela a um modelo mais
+próximo o possível da segunda tabela.
+  Infelizmente, não temos como apresentar um passo a passo padrão para limpeza de dados, pois isso depende completamente do tipo de dado que você receber, da análise que você quer fazer e da sua criatividade em manipulação de dados. Mas conhecer os pacotes certos ajuda muito nessa tarefa.
+  Lembre-se: é muito mais fácil trabalhar no R com dados “bem estruturados”, onde cada coluna deve ser uma única variável e cada linha deve ser uma única observação. Na contramão da limpeza de dados, você provavelmente terá o problema contrário ao final da sua análise.
+  Supondo que você organizou seus dados perfeitamente, conseguiu executar os modelos que gostaria, gerou diversos gráficos interessantes e está satisfeito com o resultado, você ainda precisará entregar relatórios finais da sua análise em forma de tabelas sumarizadas e explicativas, de modo que os interessados possam entender facilmente, apenas com uma rápida análise visual. Neste caso, que tipo de tabela seria melhor produzir?
+  Provavelmente, quem for ler seus relatórios entenderá mais rapidamente as tabelas mais próximas do primeiro exemplo mostrado. É importante aprender a estruturar e desestruturar tabelas de todas as formas possíveis.
+  
+5.2 Pacote tidyr
+  Apesar de existirem diversas possibilidades de situações que necessitem de limpeza de dados, a conjugação de três pacotes consegue resolver a grande maioria dos casos: dplyr, tidyr, stringr.
+  O pacote tidyr é mais um dos pacotes criados por Hadley Wickham. Este fato, por si só, já traz algumas vantagens: ele se integra perfeitamente com o dplyr, usando o conector %>%, e tem a sintaxe de suas funções bastante intuitiva.
+  
+| > install.packages("tidyr") |
+| > library(tidyr)            |
+| > ?tidyr                    |
+
+  O tidyr também tem suas funções organizadas em pequenos verbetes, onde cada um representa uma tarefa para organizar os dados. Os verbetes básicos que abordaremos são os seguintes:
+  
+  • gather()
+  • separate()
+  • spread()
+  • unite()
+
+  Vale lembrar que tudo que for feito usando o tidyr é possível executar também usando o R base, mas de uma forma um pouco menos intuitiva. Caso queira entender como usar o R base pra isso, procure mais sobre as funções melt() e cast().
+  
+5.2.1 Gather
+  A função gather() serve para agrupar duas ou mais colunas e seus respectivos valores (conteúdos) em pares.
+  Assim, o resultado após o agrupamento é sempre duas colunas. A primeira delas possui observações cujos valores chave eram as colunas antigas e a segunda possui os valores respectivos relacionados com as colunas antigas. 
+  Na prática, a função gather diminui o número de colunas e aumenta o número de linhas de nossa base de dados.
+  Usaremos dados disponíveis no R base para exemplificar:
+  
+| > data("USArrests")                                                   |
+| > str(USArrests)                                                      |
+| > ## 'data.frame': 50 obs. of 4 variables:                            |
+| > ## $ Murder : num 13.2 10 8.1 8.8 9 7.9 3.3 5.9 15.4 17.4 ...       |
+| > ## $ Assault : int 236 263 294 190 276 204 110 238 335 211 ...      |
+| > ## $ UrbanPop: int 58 48 80 50 91 78 77 72 80 60 ...                |
+| > ## $ Rape : num 21.2 44.5 31 19.5 40.6 38.7 11.1 15.8 31.9 25.8 ... |
+
+| > # Transformando o nome das linhas em colunas            |
+| > USArrests$State <- rownames(USArrests)                  |
+| > head(USArrests)                                         |
+| > ## Murder Assault UrbanPop Rape State                   |
+| > ## Alabama 13.2 236 58 21.2 Alabama                     |
+| > ## Alaska 10.0 263 48 44.5 Alaska                       |
+| > ## Arizona 8.1 294 80 31.0 Arizona                      |
+| > ## Arkansas 8.8 190 50 19.5 Arkansas                    |
+| > ## California 9.0 276 91 40.6 California                |
+| > ## Colorado 7.9 204 78 38.7 Colorado                    |
+| > usa.long <- USArrests %>%                               |
+| > gather(key = "tipo_crime", value = "valor", -State)     |
+| > head(usa.long)                                          |
+| > ## State tipo_crime valor                               |
+| > ## 1 Alabama Murder 13.2                                |
+| > ## 2 Alaska Murder 10.0                                 |
+| > ## 3 Arizona Murder 8.1                                 |
+| > ## 4 Arkansas Murder 8.8                                |
+| > ## 5 California Murder 9.0                              |
+| > ## 6 Colorado Murder 7.9                                |
+
+  No primeiro parâmetro do gather(), nós informamos a “chave”, ou seja, a coluna que guardará o que antes era coluna. No segundo parâmetro, informamos o “value”, ou seja, a coluna que guardará os valores para cada uma das antigas colunas. Repare que agora você pode afirmar com certeza que cada linha é uma
+observação e que cada coluna é uma variável.
+
+5.2.2 Spread
+É a operação antagônica do gather(). Ela espalha os valores de duas colunas em diversos campos para cada registro: os valores de uma coluna viram o nome das novas colunas, e os valores de outra viram valores de cada registro nas novas colunas. Usaremos a table2 para exemplificar:
+
+| > table2.wide <- table2 %>%           |
+| > spread(key = type, value = count)   |
+| > head(table2.wide)                   |
+| > ## # A tibble: 6 x 4                |
+| > ## country year cases population    |
+| > ## <chr> <int> <int> <int>          |
+| > ## 1 Afghanistan 1999 745 19987071  |
+| > ## 2 Afghanistan 2000 2666 20595360 |
+| > ## 3 Brazil 1999 37737 172006362    |
+| > ## 4 Brazil 2000 80488 174504898    |
+| > ## 5 China 1999 212258 1272915272   |
+| > ## 6 China 2000 213766 1280428583   |
