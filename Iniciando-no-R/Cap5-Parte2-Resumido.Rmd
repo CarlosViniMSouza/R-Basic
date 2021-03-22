@@ -1,0 +1,97 @@
+---
+title: "Cap5-Parte2-Resumido"
+author: "Carlos Souza"
+date: "21/03/2021"
+output: pdf_document
+---
+
+5.2.3 Separate
+  O separate() é usado para separar duas variáveis que estão em uma mesma coluna. Lembre-se: cada coluna deve ser apenas uma única variável! É muito normal virem variáveis juntas em uma única coluna, mas nem sempre isso é prejudicial, cabe avaliar quando vale a pena separá-las.
+  Usaremos o exemplo da table3 para investigar:
+
+5.3. MANIPULAÇÃO DE TEXTO
+
+| > table3.wide <- table3 %>%
+| > separate(rate, into = c("cases", "population"), sep='/')
+| > head(table3.wide)
+| > ## # A tibble: 6 x 4
+| > ## country year cases population
+| > ## <chr> <int> <chr> <chr>
+| > ## 1 Afghanistan 1999 745 19987071
+| > ## 2 Afghanistan 2000 2666 20595360
+| > ## 3 Brazil 1999 37737 172006362
+| > ## 4 Brazil 2000 80488 174504898
+| > ## 5 China 1999 212258 1272915272
+| > ## 6 China 2000 213766 1280428583
+
+5.2.4 Unite
+  A operação unite() é o oposto da separate(), ela pega duas colunas (variáveis) e transforma em uma só. É muito utilizada para montar relatórios finais ou tabelas para análise visual. Aproveitemos o exemplo em table2 para montarmos uma tabela final comparando a “case” e “population” de cada país, em cada ano.
+
+| > table2.relatorio <- table2 %>%
+| > unite(type_year, type, year) %>%
+| > spread(key = type_year, value = count, sep = '_')
+| > table2.relatorio
+| > ## # A tibble: 3 x 5
+| > ## country type_year_cases_1999 type_year_cases_2000
+| > ## * <chr> <int> <int>
+| > ## 1 Afghanistan 745 2666
+| > ## 2 Brazil 37737 80488
+| > ## 3 China 212258 213766
+| > ## # ... with 2 more variables: type_year_population_1999 <int>,
+| > ## # type_year_population_2000 <int>
+
+  O primeiro parâmetro é a coluna que desejamos criar, os próximos são as colunas que desejamos unir e, por fim, temos o sep, que representa algum símbolo opcional para ficar entre os dois valores na nova coluna.
+
+5.3 Manipulação de texto
+  Manipulação de texto também é algo importante em ciência de dados, pois nem tudo são números, existem variáveis categóricas que são baseadas em texto. Mais uma vez, esse tipo de manipulação depende do tipo de arquivo que você receber.
+  
+| > a <- 'texto 1'
+| > b <- 'texto 2'
+| > c <- 'texto 3'
+| > paste(a, b, c)
+| > ## [1] "texto 1 texto 2 texto 3"
+
+  O paste() é a função mais básica para manipulação de textos usando o R base. Ela concatena todas as variáveis textuais que você informar. Existe um parâmetro extra (sep) cujo valor padrão é espaço ‘ ‘.
+
+| > paste(a, b, c, sep = '-')
+| > ## [1] "texto 1-texto 2-texto 3"
+| > paste(a, b, c, sep = ';')
+| > ## [1] "texto 1;texto 2;texto 3"
+| > paste(a, b, c, sep = '---%---')
+| > ## [1] "texto 1---%---texto 2---%---texto 3"
+
+5.3.1 Pacote stringr
+  Texto no R é sempre do tipo character. No universo da computação, também se referem a texto como string. E é daí que vem o nome desse pacote, também criado por Hadley Wickham. Por acaso, este pacote não está incluído no tidyverse.
+
+| > install.packages('stringr')
+| > library(stringr)
+| > ?stringr
+
+  Temos também a função str_replace() e str_replace_all(), que substituem determinados caracteres por outros. Tal como no exemplo a seguir:
+  
+| > telefones <- c('9931-9512', '8591-5892', '8562-1923')
+| > str_replace(telefones, '-', '')
+| > ## [1] "99319512" "85915892" "85621923"
+| > cnpj <- c('19.702.231/9999-98', '19.498.482/9999-05', '19.499.583/9999-50', | > | > '19.500.999/9999-46', '19.501.139/9999-90')
+| > str_replace_all(cnpj, '\\.|/|-', '')
+| > ## [1] "19702231999998" "19498482999905" "19499583999950" "19500999999946"
+| > ## [5] "19501139999990"
+
+5.3.2 Regex
+  Trata-se de um assunto bastante complexo e avançado. Não é fácil dominar regex e provavelmente você vai precisar sempre consultar e experimentar a montagem dos padrões de regex. Infelizmente não é possível aprender regex rápido e de um jeito fácil, só existe o jeito difícil: errando muito, com muita prática e
+experiências reais.
+  A seguir, uma lista dos principais mecanismos de regex:
+
+              regex correspondência
+    
+  |      ^ : começa do string (ou uma negação)  |
+  |      . : qualquer caractere                 |
+  |      $ : fim da linha                       |
+  | [maça] : procura os caracteres m, a, ç      |
+  |   maça : maça                               |
+  |  [0-9] : números                            |
+  |  [A-Z] : qualquer letra maiúscula           |
+  |    \\w : uma palavra                        |
+  |    \\W : não é palavra                      |
+  |        (pontuação, espaço etc.)             |
+  |    \\s : um espaço (tab, newline, space)    |
