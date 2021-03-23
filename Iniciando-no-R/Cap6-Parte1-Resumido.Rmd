@@ -1,0 +1,113 @@
+---
+title: "Cap6-Parte1-Resumido"
+author: "Carlos Souza"
+date: "22/03/2021"
+output: pdf_document
+---
+
+  Capítulo 6
+
+  Juntando dados
+
+  Existem duas grandes formas de junção de dados: UNIÃO e CRUZAMENTO.
+Para que uma união seja possível, os dois conjuntos de dados precisam ter os mesmos campos. Para que um cruzamento seja possível, os dois conjuntos precisam ter pelo menos um campo em comum.
+
+6.1 União de dados (Union)
+  A união de dados é mais intuitiva. Basta ter a mesma quantidade de campos e que estes estejam “alinhados”. A função mais usada para isso é o famoso rbind() (Row Bind). Caso os campos tenham exatamente os mesmos nomes e tipo, o rbind() consegue fazer a união perfeitamente.
+  
+| > dados2016 <- data.frame(ano = c(2016, 2016, 2016),
+| > valor = c(938, 113, 1748),
+| > produto = c('A', 'B', 'C'))
+| > dados2017 <- data.frame(valor = c(8400, 837, 10983),
+| > produto = c('H', 'Z', 'X'),
+| > ano = c(2017, 2017, 2017))
+| > dados.finais <- rbind(dados2016, dados2017)
+| > dados.finais
+| > ## ano valor produto
+| > ## 1 2016 938 A
+| > ## 2 2016 113 B
+| > ## 3 2016 1748 C
+| > ## 4 2017 8400 H
+| > ## 5 2017 837 Z
+| > ## 6 2017 10983 X
+
+  A união de dados é a forma mais simples de juntá-los.
+
+6.2 Cruzamento de Dados (Join)
+  O cruzamento de dados é um pouco mais complexo, mas nem por isso chega a ser algo difícil. Para entender-se como fazer “joins” (cruzamentos), é preciso compreender-se o conceito de chave. 
+  Entenda chave como uma coluna que está presente da mesma forma em dois conjuntos de dados distintos. O conceito completo de chave é bem mais complexo que isto, mas, para começarmos a entender e usar os joins, basta
+usar essa intuição.
+  Tendo esse conceito simplificado de chave em mente, a primeira coisa que se deve fazer quando for preciso cruzar dois conjuntos de dados é tentar identificar quais os campos chaves, ou seja, quais campos estão
+presentes nos dois grupos.
+  O que acontece quando nem todos os códigos de um grupo estão no outro? E quando um grupo tem códigos repetidos em várias linhas? Para responder a essas e outras perguntas precisamos conhecer os diferentes tipos de joins. Existe pelo menos uma dezena de tipos de joins, mas 90% das vezes você precisará apenas dos tipos básicos que explicaremos a seguir. Usaremos o pacote dplyr para aplicar os joins.
+  O R base possui a função merge() para joins, se tiver curiosidade procure mais sobre ela depois.
+
+6.2.1 Inner Join (ou apenas Join)
+  Trata-se do join mais simples, mais básico e mais usado dentre todos os outros tipos. O seu comportamento mantém no resultado apenas as linhas presentes nos dois conjuntos de dados que estão sendo cruzados. O
+inner join funciona da seguinte forma:
+  A tabela final, após o cruzamento, conterá as linhas com as chaves que estiverem em AMBOS os conjuntos de dados. As linhas com chaves que não estão em ambos serão descartadas. Esta característica torna o inner
+join muito útil para fazer-se filtros.
+
+  Vamos utilizar dados já disponíveis no dplyr para testar os joins:
+
+| > band_members
+| > ## # A tibble: 3 x 2
+| > ## name band
+| > ## <chr> <chr>
+| > ## 1 Mick Stones
+| > ## 2 John Beatles
+| > ## 3 Paul Beatles
+
+| > band_instruments
+| > ## # A tibble: 3 x 2
+| > ## name plays
+| > ## <chr> <chr>
+| > ## 1 John guitar
+| > ## 2 Paul bass
+| > ## 3 Keith guitar
+
+| > str(band_members)
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ name: chr "Mick" "John" "Paul"
+| > ## $ band: chr "Stones" "Beatles" "Beatles"
+
+| > str(band_instruments)
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ name : chr "John" "Paul" "Keith"
+| > ## $ plays: chr "guitar" "bass" "guitar"
+| > #vamos juntar os dois conjuntos com um join
+
+| > band_members %>% inner_join(band_instruments)
+| > ## # A tibble: 2 x 3
+| > ## name band plays
+| > ## <chr> <chr> <chr>
+| > ## 1 John Beatles guitar
+| > ## 2 Paul Beatles bass
+| > #o dplyr "adivinhou" a coluna chave pelo nome
+
+  Repare que, nesse caso, a chave é a coluna name. Repare também que os dois conjuntos têm três registros.
+  Então, por que o resultado final só tem dois registros? A resposta é simples: porque o comportamento do join é justamente retornar apenas as linhas em que as chaves coincidiram (efeito de filtro).
+  Vamos fazer o mesmo experimento com band_intruments2:
+  
+| > band_instruments2
+| > ## # A tibble: 3 x 2
+| > ## artist plays
+| > ## <chr> <chr>
+| > ## 1 John guitar
+| > ## 2 Paul bass
+| > ## 3 Keith guitar
+
+6.2. CRUZAMENTO DE DADOS (JOIN)
+
+| > str(band_instruments2) #o nome da coluna é diferente
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ artist: chr "John" "Paul" "Keith"
+| > ## $ plays : chr "guitar" "bass" "guitar"
+| > band_members %>% inner_join(band_instruments2, by = c('name' = 'artist'))
+| > ## # A tibble: 2 x 3
+| > ## name band plays
+| > ## <chr> <chr> <chr>
+| > ## 1 John Beatles guitar
+| > ## 2 Paul Beatles bass
+  
+  Repare que, dessa vez, tivemos que especificar qual a coluna chave para que o join aconteça.
