@@ -1,0 +1,107 @@
+---
+title: "Cap6-Parte2-Resumido"
+author: "Carlos Souza"
+date: "23/03/2021"
+output: pdf_document
+---
+
+6.2.1 Inner Join (ou apenas Join)
+  Trata-se do 'join mais simples, mais básico' e mais usado dentre todos os outros tipos. O seu comportamento mantém no resultado apenas as linhas presentes nos dois conjuntos de dados que estão sendo cruzados. O
+inner join funciona da seguinte forma:
+  A tabela final, após o cruzamento, conterá as linhas com as chaves que estiverem em AMBOS os conjuntos de dados. As linhas com chaves que não estão em ambos serão descartadas. Esta característica torna o inner join muito útil para fazer-se filtros. Confira o exemplo abaixo :
+  
+| > band_members
+| > ## # A tibble: 3 x 2
+| > ## name band
+| > ## <chr> <chr>
+| > ## 1 Mick Stones
+| > ## 2 John Beatles
+| > ## 3 Paul Beatles
+|
+| > band_instruments
+| > ## # A tibble: 3 x 2
+| > ## name plays
+| > ## <chr> <chr>
+| > ## 1 John guitar
+| > ## 2 Paul bass
+| > ## 3 Keith guitar
+|
+| > str(band_members)
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ name: chr "Mick" "John" "Paul"
+| > ## $ band: chr "Stones" "Beatles" "Beatles"
+|
+| > str(band_instruments)
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ name : chr "John" "Paul" "Keith"
+| > ## $ plays: chr "guitar" "bass" "guitar"
+|
+| > #vamos juntar os dois conjuntos com um join
+| > band_members %>% inner_join(band_instruments)
+| > ## # A tibble: 2 x 3
+| > ## name band plays
+| > ## <chr> <chr> <chr>
+| > ## 1 John Beatles guitar
+| > ## 2 Paul Beatles bass
+
+  Repare que, nesse caso, a chave é a coluna name. Repare também que os dois conjuntos têm três registros. Então, por que o resultado final só tem dois registros? A resposta é simples: porque o comportamento do join é justamente retornar apenas as linhas em que as chaves coincidiram (efeito de filtro).
+  Vamos fazer o mesmo experimento com band_intruments2:
+
+| > band_instruments2
+| > ## # A tibble: 3 x 2
+| > ## artist plays
+| > ## <chr> <chr>
+| > ## 1 John guitar
+| > ## 2 Paul bass
+| > ## 3 Keith guitar
+|
+| > str(band_instruments2) #o nome da coluna é diferente
+| > ## Classes 'tbl_df', 'tbl' and 'data.frame': 3 obs. of 2 variables:
+| > ## $ artist: chr "John" "Paul" "Keith"
+| > ## $ plays : chr "guitar" "bass" "guitar"
+|
+| > band_members %>% inner_join(band_instruments2, by = c('name' = 'artist'))
+| > ## # A tibble: 2 x 3
+| > ## name band plays
+| > ## <chr> <chr> <chr>
+| > ## 1 John Beatles guitar
+| > ## 2 Paul Beatles bass
+
+  Repare que, dessa vez, tivemos que especificar qual a coluna chave para que o join aconteça.
+
+6.2.2 Left Outer Join
+  Chama-se 'LEFT outer join' pois todos os registros do “conjunto à esquerda” estarão presentes no resultado
+final, além dos registros à direita que coincidirem na chave. Podemos usar no caso a seguir:
+
+| > band_members %>% left_join(band_instruments2, by = c('name' = 'artist'))
+| > ## # A tibble: 3 x 3
+| > ## name band plays
+| > ## <chr> <chr> <chr>
+| > ## 1 Mick Stones <NA>
+| > ## 2 John Beatles guitar
+| > ## 3 Paul Beatles bass
+|
+| > band_instruments2
+| > ## # A tibble: 3 x 2
+| > ## artist plays
+| > ## <chr> <chr>
+| > ## 1 John guitar
+| > ## 2 Paul bass
+| > ## 3 Keith guitar
+
+  Reparem no efeito: mesmo Mick não tendo referência no conjunto de dados “à direita” (band_instruments2), ele apareceu no registro final com NA, no campo que diz respeito ao conjunto à direita.
+  Repare que a “posição” das tabelas faz diferença. No caso da nossa manipulação de exmeplo, aplicamos o left join pois a tabela que queríamos preservar estava “à esquerda” na manipulação.
+  
+| > final2 <- empregados %>%
+| > left_join(departamentos, by = c('Employee' = 'Manager'))
+| > final2
+|
+| > ## # A tibble: 6 x 6
+| > ## Employee EmployeeName Department.x Salary Department.y DepartmentName
+| > ## <int> <chr> <int> <int> <int> <chr>
+| > ## 1 1 Alice 11 800 11 Production
+| > ## 2 2 Bob 11 600 NA <NA>
+| > ## 3 3 Carla 12 900 NA <NA>
+| > ## 4 4 Daniel 12 1000 12 Sales
+| > ## 5 5 Evelyn 13 800 13 Marketing
+| > ## 6 6 Ferdinand 21 700 NA <NA>
