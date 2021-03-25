@@ -1,0 +1,86 @@
+---
+title: "Cap8-Resumido"
+author: "Carlos Souza"
+date: "25/03/2021"
+output: pdf_document
+---
+
+Capítulo 8
+
+Obtendo dados
+
+  A base da ciência de dados é, obviamente, o DADO. Portanto, é fundamental sempre ter boas fontes de dados. Se você der sorte, conseguirá dados estruturados para iniciar sua análise. Porém, eventualmente precisará recorrer a fontes de dados não estruturados ou semiestruturados.
+  Muito provavelmente você algum dia precisará recorrer a uma Application Programming Interface (API) de dados, ou até mesmo precisará utilizar técnicas de Web Scrapping para obter dados diretamente em um próprio site.
+
+8.1 API
+  API é uma forma de comunicação de dados mais apropriada para as trocas de informações entre softwares. Normalmente APIs trocam dados em formato hierárquico. Os dois formatos hierárquicos mais comuns são Javascript Object Notation (JSON) e eXtensible Markup Language (XML).
+  Para obter-se e utilizar-se dados de API em R recomendamos a utilização do pacote jsonlite.
+  
+  >> library(jsonlite)
+
+  A seguir apresentaremos alguns exemplos de APIs e seu uso. Existem diversas APIs e formas de consumilas, portanto não iremos exaurir nesse texto todas as possibilidades de uso de APIs. O principal aqui é entender-se APIs como uma fonte rica de dados que pode ser explorada em suas análises.
+  No exemplo a seguir utilizamos a API do github (portal para repositórios) e veremos quais os repositórios do Hadley Wickham:
+  
+| > hadley.rep <- jsonlite::fromJSON("https://api.github.com/users/hadley/repos")
+| > dim(hadley.rep)
+| > ## [1] 30 72
+| > head(hadley.rep[,c('name', 'description')], 15)
+| > ## name
+| > ## 1 15-state-of-the-union
+| > ## 2 15-student-papers
+| > ## 3 18-fp
+| > ## 4 500lines
+| > ## 5 adv-r
+| > ## 6 appdirs
+| > ## 7 assertthat
+| > ## 8 babynames
+| > ## 9 beautiful-data
+| > ## 10 bench
+| > ## 11 bigvis
+| > ## 12 bigvis-infovis
+| > ## 13 BiocStickers
+| > ## 14 bizarro
+| > ## 15 boxplots-paper
+| > ## description
+| > ## 1 <NA>
+| > ## 2 Graphics & computing student paper winners @ JSM 2015
+| > ## 3 <NA>
+| > ## 4 500 Lines or Less
+| > ## 5 Advanced R programming: a book
+| > ## 6 A small Python module for determining appropriate platform-specific dirs, |e.g. a "user data dir".
+| > ## 7 User friendly assertions for R
+| > ## 8 An R package contain all baby names data from the SSA
+| > ## 9 Book chapter for beautiful data
+| > ## 10 Bechmarking tools for R
+| > ## 11 Exploratory data analysis for large datasets (10-100 million observations)
+| > ## 12 Paper describing the bigvis package and framework submitted to Infovis 2013
+| > ## 13 Stickers for some Bioconductor packages - feel free to contribute and/or |modify.
+| > ## 14 Bizarro world
+| > ## 15
+
+  Hoje em dia, todas as redes sociais possuem APIs para consumir os dados dos usuários e postagens. Normalmente essas APIs pedem um cadastro anterior (apesar de gratuitas, em sua maior parte). O R possui diversos pacotes para consumir APIs interessantes:
+  
+  • Quandl: pacote que fornece diversos dados econômicos de diversos países;
+  • Rfacebook: pacote que facilita o uso da API do facebook (requer cadastro prévio);
+  • twitterR: pacote que facilita o uso da API do twitter (requer cadastro prévio);
+  • ggmap: pacote que facilita o uso da API do google maps.
+  
+  Sempre procure por APIs para obter dados que possam enriquecer suas análises.
+  
+8.2 Web Scrapping 
+  Eventualmente você não terá dados estruturados de forma fácil e nem terá uma API com os dados que procura. Nesses casos pode ser que um próprio site da internet seja sua fonte de dados. Para isso utiliza-se técnicas chamadas de Web Scrapping.
+  Sites da internet são construídos utilizando-se uma linguagem que é interpretada pelos browsers: HyperText Markup Language (HTML). Esta é uma linguagem que trabalha com tags de forma hierárquica. Nesse site você pode aprender um pouco mais sobre o que é HTML: 
+  
+  >> http://www.w3schools.com/html/tryit.asp?filename=tryhtml_basic_document
+  
+  Existe um pacote em R que facilita muito o cosumo de dados em HTML: rvest, criado também por Hadley Wickham. O rvest mapeia os elementos HTML (tags) de uma página web e facilita a “navegação” do R por esses nós da árvore do HTML. Veja o exemplo a seguir:
+
+| > library(rvest)
+| > html <- read_html("https://pt.wikipedia.org/wiki/Lista_de_redes_de_televis%C3%A3|o_do_Brasil")
+| > html.table <- html %>% html_nodes("table")
+| > dados <- html.table[[1]] %>% html_table()
+| > dados <- dados %>%
+| > select(-`Lista de emissoras`)
+| > head(dados)
+
+  Obtivemos todo o HTML da página, mapeamos os nós de tabela (table) e pegamos seu conteúdo. A partir daí, trata-se de um dataframe normal, que pode ser manipulado com o dplyr.
