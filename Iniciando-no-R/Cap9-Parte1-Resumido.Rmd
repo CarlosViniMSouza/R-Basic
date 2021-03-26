@@ -1,0 +1,110 @@
+---
+title: "Cap9-Parte1-Resumido"
+author: "Carlos Souza"
+date: "26/03/2021"
+output: pdf_document
+---
+
+# O Capítulo 9 é muito extenso, terá que ser subdividido em várias partes.
+
+Capítulo 9
+
+Visualizações de dados (ggplot2)
+
+    O ggplot2 é mais um pacote desenvolvido por Hadley Wickham, o criador, por exemplo, do tidyr e do
+dplyr. A ideia do pacote, ainda que com algumas modificações, vem de uma obra chamada The Grammar
+of Graphics, que é uma maneira de descrever um gráfico a partir dos seus componentes. Dessa forma,
+teoricamente, ficaria mais fácil entender a construção de gráficos mais complexos.
+    Esse pacote é estruturado de forma que a “gramática” seja utilizada para um gráfico a partir de múltiplas
+camadas. As camadas serão formadas por dados, mapeamentos estéticos, transformações estatísticas dos
+dados, objetos geométricos (pontos, linhas, barras etc.) e ajuste de posicionamento. Além disso, existem
+outros componentes, como os sistemas de coordenadas (cartesiano, polar, mapa etc.) e, se for o caso,
+divisões do gráfico em subplots (facet). Um simples exemplo de múltiplas camadas seria um gráfico de
+pontos adicionado de uma curva de ajustamento.
+    Uma forma geral (template) para entender-se a estrutura do ggplot2, segundo o próprio Hadley Wickhan,
+no livro R for Data Science, é a seguinte:
+
+| > ggplot(data = <DATA>) +
+| > <GEOM_FUNCTION>(
+| > mapping = aes(<MAPPINGS>),
+| > stat = <STAT>,
+| > position = <POSITION>
+| > ) +
+| > <COORDINATE_FUNCTION> +
+| > <FACET_FUNCTION> # dividir o gráfico em subplots
+
+    A ideia é que todo gráfico pode ser representado por essa forma. No entanto, na criação de um gráfico,
+não é necessário especificar-se todas as partes acima. O ggplot2 já oferece um padrão para o sistema de
+coordenadas, para o stat e position. O facet (subplot) só será utilizado quando necessário.
+    Além disso, existem as escalas que são utilizadas para controlar o mapeamento dos dados em relação aos
+atributos estéticos do gráfico. Por exemplo: suponha que no seu gráfico exista uma coluna que é uma
+variável categórica com três classes possíveis e as cores do objeto geométrico estejam associadas a essa
+variável. Automaticamente, o ggplot2 definirá uma cor pra cada classe. 
+    No entanto, você pode alterar a escala de cores para ter controle sobre elas. O mesmo vale para os valores 
+apresentados nos eixos x e y. Uma observação importante é que apesar dos dados estarem na função ggplot()
+(<DATA>), eles também podem ser incluídos diretamente em cada objeto geométrico. 
+    Isto será útil quando for necessário criar-se uma nova camada a partir de dados diferentes daqueles que estão 
+inicialmente nos gráficos. Dessa forma, incorporando essas observações, um template estendido seria o abaixo:
+
+| > ggplot(data = <DATA>) +
+| > <GEOM_FUNCTION>(
+| > mapping = aes(<MAPPINGS>),
+| > stat = <STAT>,
+| > position = <POSITION>,
+| > data = <DATA> # pode receber os dados diretamente
+| > ) +
+| > <SCALE_FUNCTION> + # uma para cada elemento estético
+| > <COORDINATE_FUNCTION> +
+| > <FACET_FUNCTION> # dividir o gráfico em subplots
+
+    Também é importante ressaltar-se que, como todo sistema de gráficos, é possível alterar-se todos os títulos e
+rótulos do gráfico, além do controle sobre as características do tema do gráfico (cor do fundo, estilo da fonte,
+tamanho da fonte etc).
+    Para quebrar-se a barreira inicial, vamos criar um exemplo por partes:
+
+library(ggplot2)
+
+data("mtcars")
+# Inicia o plot
+
+g <- ggplot(mtcars)
+# Adicionar pontos (geom_point) e
+# vamos mapear variáveis a elementos estéticos dos pontos
+# Size = 3 define o tamanho de todos os pontos
+
+g <- g +
+geom_point(aes(x = hp, y = mpg, color = factor(am)),
+size = 3) 
+# Altera a escala de cores
+
+g <- g +
+scale_color_manual("Automatic",
+values = c("red", "blue"),
+labels = c("No", "Yes"))
+# Rótulos (títulos)
+
+g <- g +
+labs(title = 'Relação entre consumo, potência e tipo de câmbio',
+y = 'Consumo',
+x = 'Potência')
+g
+
+    Note que o gráfico poderia ser criado com um bloco único de código:
+
+| > ggplot(mtcars) +
+| > geom_point(aes(x = hp, y = mpg, color = factor(am)),
+| > size = 3) +
+| > scale_color_manual("Automatic",
+| > values = c("red", "blue"),
+| > labels = c("No", "Yes")) +
+| > labs(title = 'Relação entre consumo, potência e tipo de câmbio',
+| > y = 'Consumo',
+| > x = 'Potência')
+
+    Detalharemos cada parte do gráfico, mas vale falar-se rapidamente sobre o código acima. Primeiramente,
+passamos um conjunto de dados para o ggplot.
+    Depois, adicionamos uma camada de pontos, mapeando as variáveis hp e mpg para as posições de cada ponto
+nos eixos x e y, respectivamente, e a variável am para a cor de cada ponto. Em seguida, alteramos a escala de cor, 
+definindo seu título, os rótulos (labels) e os valores (values) para as cores.
+    Por fim, definimos os títulos/rótulos do gráfico. Nas próximas seções, falaremos com mais detalhes sobre cada 
+componente, começando pelo mapeamento estético.
