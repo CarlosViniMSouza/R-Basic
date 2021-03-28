@@ -1,0 +1,76 @@
+---
+title: "Cap9-Parte2-Resumido"
+author: "Carlos Souza"
+date: "27/03/2021"
+output: pdf_document
+---
+
+9.1 Mapeamento Estético
+  O mapeamento estético é o mapeamento das variáveis dos dados para as características visuais dos objetos geométricos (pontos, barras, linhas etc.). Isto é feito a partir da função aes(). E quais são as características visuais de um objeto geométrico? Abaixo segue uma lista não exaustiva:
+  
+• Posição (x e y);
+• Cor (color);
+• Tamanho (size);
+• Preenchimento (fill);
+• Transparência (alpha);
+• Texto (label).
+
+  Como vimos no exemplo acima, mapeamos três variáveis para três características visuais de cada ponto: posição x, posição y e cor. Nos próximos exemplos, outros elementos estéticos serão utilizados, conforme o objeto geométrico selecionado.
+
+9.2 Objetos geométricos
+  Os objetos geométricos começam com a expressão geom_ e são seguidos pelo tipo de objeto. Por exemplo, geom_point() para pontos e geom_bar() para barras. A tabela abaixo apresenta os tipos de objetos geométricos utilizados para criar-se alguns tipos de gráficos populares.
+  
+  ° Tipo Objeto Geométrico
+  ° Dispersão (scatterplot) geom_point()
+  ° Gráfico de bolhas geom_point()
+  ° Gráfico de barras geom_bar() e geom_col()
+  ° Histograma geom_histogram()
+  ° Boxplot geom_boxplot()
+  ° Densidade geom_density()
+  ° Gráfico de linhas geom_line()
+
+  Nesse material, os principais tipos de objetos geométricos serão demonstrados a partir de exemplos. A lista completa de objetos geométricos e as descrições dos argumentos estão na documentação do ggplot2.
+  É importante saber-se que um gráfico do ggplot2 pode ter mais de um objeto geométrico, cada um formando uma camada. Por exemplo, uma camada de pontos e outra de linhas que conectam os pontos.
+  Vamos, primeiramente, criar um gráfico com pontos a partir dos dados mtcars. Use ?mtcars para mais detalhes.
+  
+| > g1 <- ggplot(mtcars, aes(y = mpg, x = disp)) +
+| > geom_point()
+| > g1
+
+  Note que o aes() está sendo usado diretamente na função ggplot() e não no objeto geométrico. O que isto significa? Que o mapeamento estético definido na função ggplot() é global. Ou seja, é aplicado para todos os objetos geométricos daquele gráfico, a menos que seja explicitado novamente em alguma camada.
+  Para finalizarmos essa breve introdução a objetos geométricos, adicionemos mais uma camada ao gráfico:
+  
+| > library(dplyr)
+| > mtcars <- mtcars %>%
+| > mutate(name = rownames(mtcars))
+| > ggplot(mtcars, aes(y = mpg, x = disp)) +
+| > geom_point() +
+| > geom_smooth()
+
+  No caso, adicionamos uma curva de ajustamento aos dados, que tem o objetivo de evidenciar um padrão nos mesmos.
+
+9.3 Escalas
+  O controle sobre as escalas do gráfico é fundamental no ajuste de um gráfico. Em geral, o ggplot2, como outros pacotes gráficos, fornece as escalas automaticamente, não sendo necessário o entendimento de como se controlar este componente. No entanto, se o interesse é ter controle sobre todos os aspectos de um gráfico, esse componente é fundamental.
+
+| > ggplot(iris, aes(x = Petal.Length, y = Petal.Width, color = Species)) +
+| > geom_point()
+
+Todavia, é comum haver interesse em alterar-se essas cores, ou seja, alterar-se a escala de cor. Como fazer isso no ggplot2? Podemos usar, por exemplo, a função 'scale_color_manual()':
+
+| > ggplot(iris, aes(x = Petal.Length, y = Petal.Width, color = Species)) +
+| > geom_point() +
+| > scale_color_manual(values = c("orange", "black", "red"))
+
+  Utilizamos a função scale_color_manual() em razão da variável Species ser categórica. Para o ggplot2, dados categóricos são discretos, e a função citada permite criar-se uma escala discreta customizada. No entanto, essa não é a única função para controlar escala de cor. Existem outras como scale_color_discrete(), scale_color_continuous(), scale_color_gradient() etc.
+  A utilização de cada função depende do tipo de dado que se está associando ao elemento estético color. Adiante, entraremos em mais detalhes sobre os
+tipos de dados.
+  As funções utilizadas para controlar-se as escalas dos elementos de um gráfico do ggplot2 seguem um padrão. Todas iniciam-se com scale_, depois o nome do elemento estético (color, fill, x etc.) e, por fim, o tipo/nome da escala que será aplicada.
+  Abaixo, continuaremos o exemplo anterior, alterando as escalas dos eixos x e y. Note que as variáveis Petal.Length e Petal.Width são variáveis numéricas/contínuas. Dessa forma, utilizaremos as funções 'scale_x_continuous()' e 'scale_y_continuous()':
+  
+| > ggplot(iris, aes(x = Petal.Length, y = Petal.Width, color = Species)) +
+| > geom_point() +
+| > scale_color_manual(values = c("orange", "black", "red")) +
+| > scale_x_continuous(name = "Petal Length", breaks = 1:7) +
+| > scale_y_continuous(name = "Petal Width", breaks = 0:3, limits = c(0, 3))
+
+No gráfico acima, definimos quais seriam os pontos em que rótulos deveriam ser exibidos em cada eixo. Além disso, no eixo y, definimos que os limites seriam 0 e 3.
