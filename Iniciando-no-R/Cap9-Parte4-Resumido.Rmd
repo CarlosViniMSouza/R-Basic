@@ -1,0 +1,132 @@
+---
+title: "Cap9-Parte4-Resumido"
+author: "Carlos Souza"
+date: "29/03/2021"
+output: pdf_document
+---
+
+9.4 Subplots (facet)
+    O ggplot2 facilita a criação de subplots nos casos em que se deseja replicar o mesmo gráfico para um
+conjunto de valores de outra variável. Por exemplo, criar um gráfico da série temporal de desemprego para
+cada unidade da federação. As duas principais funções são facet_wrap() e facet_grid().
+
+    • Painéis em formato de grid:
+
+| > facet_grid(facets, margins = FALSE, scales = "fixed", space = "fixed", shrink = TRUE,
+| > labeller = "label_value", as.table = TRUE, switch = NULL, drop = TRUE)
+
+    • Converte painéis de uma dimensão para duas dimensões:
+
+| > facet_wrap(facets, nrow = NULL, ncol = NULL, scales = "fixed", shrink = TRUE,
+| > labeller = "label_value", as.table = TRUE, switch = NULL, drop = TRUE,
+| > dir = "h")
+
+    Antes de mais nada, vamos criar um exemplo para o facet_wrap():
+
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point()
+
+    E se o objetivo for comparar essas relações para diferentes grupos de lapidação?
+
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > facet_wrap(~ cut)
+
+    Usamos a fórmula ~ cut. Ou seja, indicamos que queremos quebrar os gráficos pela variável cut.
+
+    O ggplot2 determinou automaticamente o número de colunas e linhas e fixou as escalas dos eixos. No entanto,
+podemos definir o número de linhas ou colunas a partir dos argumentos nrow e ncol. Também é possível
+definir-se que cada gráfico tenha sua escala. No exemplo abaixo, deixaremos a escala do eixo y livre.
+
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > facet_wrap(~ cut, scales = "free_y")
+
+    Já o uso do facet_grid() é indicado para o cruzamento de variáveis. No exemplo abaixo, a relação entre
+as variáveis price e carat será “quebrada” para grupos formados pelas variáveis cut e clarity:
+
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > facet_grid(clarity ~ cut)
+
+    Note que para cada categoria existe um rótulo. Para alterar-se esse relatório, pode-se alterar diretamente o
+data.frame ou usar a função labeller().
+
+| > nomes_cut <- c(
+| > Fair = "FAIR",
+| > Good = "GOOD",
+| > `Very Good` = "VERY GOOD",
+| > Premium = "PREMIUM",
+| > Ideal = "IDEAL")
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > facet_wrap(~ cut, scales = "free_y",
+| > labeller = labeller(cut = nomes_cut))
+
+9.5 Temas
+    O ggplot2 fornece alguns temas prontos. Todavia, o usuário pode alterar manualmente cada detalhe de
+um gráfico ou criar um tema que será utilizado em outras visualizações. Para editar o tema, será usada a
+função theme(). Nesta função, poderão ser alterados os elementos do tema, como a cor de fundo do painel,
+o tamanho da fonte do eixo x, a posição da legenda etc.
+    Em um primeiro momento, pode parecer complicado alterar o tema via código, porém, conforme o usuário
+for praticando, essas alterações ficarão mais intuitivas. De toda forma, existe um addin para o RStudio que
+ajuda a customizar-se um gráfico do ggplot2 a partir de uma interface de point and click. Para instalá-lo,
+faça o seguinte:
+
+    >> install.packages('ggThemeAssist')
+
+    Para exemplificar a alteração do tema manualmente:
+
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > | > labs(title = "Carat vs Price") +
+| > theme(text = element_text(face = "bold"),
+| > panel.grid.major = element_line(colour = "gray80"),
+| > axis.title = element_text(size = 14),
+| > panel.background = element_rect(fill = "gray100"))
+
+9.5.1 Temas disponíveis no ggplot2
+
+| > p <- ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point()
+| > p + theme_gray() +
+| > labs(title = "theme_gray()")
+| > p + theme_bw() +
+| > labs(title = "theme_bw()")
+| > p + theme_linedraw() +
+| > labs(title = "theme_linedraw()")
+| > p + theme_light() +
+| > labs(title = "theme_light()")
+| > p + theme_minimal() +
+| > labs(title = "theme_minimal()")
+| > p + theme_classic() +
+| > labs(title = "theme_classic()")
+| > p + theme_dark() +
+| > labs(title = "theme_dark()")
+| > p + theme_void() +
+| > labs(title = "theme_void()")
+
+9.5.2 Temas no pacote ggthemes
+    O pacote ggthemes disponibiliza um conjunto de temas e escalas de cores. Vamos apresentar alguns temas
+disponíveis:
+
+9.5.3 hrbrthemes
+    Alguns pacotes fornecem seus próprios temas. É o caso do hrbrthemes. Este pacote fornece um tema
+bastante interessante e será usado no resto deste capítulo. Como qualquer outro tema, se for necessário,
+você pode editá-lo com a função theme():
+
+    >> install.packages("hrbrthemes")
+
+| > library(hrbrthemes)
+| > ggplot(diamonds, aes(x = carat, y = price)) +
+| > geom_point() +
+| > labs(title = "theme_ipsum()") +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+9.5.4 Setando o tema globalmente
+    Com o comando abaixo, todos os gráficos do seu script terão o mesmo tema:
+
+| > theme_set(theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10) +
+| > theme(text = element_text(angle = 0)))
