@@ -1,0 +1,181 @@
+---
+title: "Cap9-Parte3-Resumido"
+author: "Carlos Souza"
+date: "28/03/2021"
+output: pdf_document
+---
+
+9.3.1 Tipos de Variáveis
+    Para melhor uso das escalas, é preciso saber o tipo de variável que foi mapeado para cada elemento estético.
+Vamos rapidamente montar essa relação:
+
+    ° Classe Exemplo Tipo no ggplot2
+    ° numeric seq(0, 1, length.out = 10) continuous
+    ° integer 1L:10L continuous ou discrete
+    ° character c(“Sim”, “Não”) discrete
+    ° factor factor(c(“Sim”, “Não”)) discrete
+    ° date seq(as.Date(“2000/1/1”), by = “month”, length.out = 12) date
+
+    Lembre-se que o padrão do ggplot é scale_, depois o nome do elemento estético (color, fill, x etc.) e, por
+fim, o tipo/nome da escala que será aplicada. É importante que o usuário saiba o tipo de dado, pois assim
+saberá com mais facilidade qual é o tipo de escala que deve ser escolhido.
+    Vamos, em sequência, entrar em mais detalhes para escalas dos eixos (x e y) e de cores. Espera-se que a
+intuição desenvolvida a partir dos exemplos das escalas para esses elementos estéticos seja útil para os demais
+elementos estéticos.
+
+9.3.2 Eixos
+
+9.3.2.1 Variáveis Contínuas
+
+    ° scale_x_continuous(name = waiver(), breaks = waiver(), minor_breaks = waiver(),
+    ° labels = waiver(), limits = NULL, expand = waiver(),
+    ° oob = censor, na.value = NA_real_, trans = "identity")
+    ° scale_y_continuous(name = waiver(), breaks = waiver(), minor_breaks = waiver(),
+    ° labels = waiver(), limits = NULL, expand = waiver(),
+    ° oob = censor, na.value = NA_real_, trans = "identity")
+
+    Vamos começar editando os valores dos eixos x e y. Anteriormente, já demos uma pequena amostra sobre a
+edição dos eixos x e y. Abaixo, será apresentado mais um exemplo:
+
+    ° library(ISLR)
+    ° ggplot(Wage, aes(x = age, y = wage, color = education)) +
+    ° geom_point() +
+    ° scale_x_continuous("Idade", breaks = seq(0, 80, 5),
+    ° expand = c(0, 5)) +
+    ° scale_y_continuous("Salário", labels = function(x) paste0("US$ ", x),
+    ° limits = c(0, 400))
+
+    Para o eixo x, determinamos que as quebras (breaks) acontecem a cada 5 anos. O expand(0,0) é um
+argumento que controla os espaços adicionais no final do gráfico. É preciso fornecer-se um vetor de tamanho
+2, com uma constante multiplicativa e outra aditiva. No exemplo acima, eliminamos a expansão.
+    Para o eixo y, informamos que o nome do eixo é Salário, que os limites inferior e superior são 0 e 400 e
+alteramos os rótulos. No caso, passamos uma função que concatena US$ com o valor que já seria exibido.
+Note que, sabendo de antemão todos os breaks, é possível definir-se manualmente os labels. Veremos isso
+no exemplo com variáveis categóricas, no entanto, para variáveis contínuas, o uso de funções parece mais
+apropriado.
+
+9.3.2.2 Variáveis discretas
+    Apesar do help não apresentar todos os argumentos para as escalas discretas, podemos usar quase todos que
+foram listados para escala contínua.
+
+    ° scale_x_discrete(..., expand = waiver(), position = "bottom")
+    ° scale_y_discrete(..., expand = waiver(), position = "left")
+
+    No exemplo abaixo, alteraremos os rótulos para uma escala discreta, que originalmente contém os valores Yes e No.
+
+    ° ggplot(Default, aes(x = default, y = balance)) +
+    ° geom_boxplot() +
+    ° scale_x_discrete("Calote", labels = c("Não", "Sim")) +
+    ° labs(y = "Valor devido médio após o pagamento mensal")
+
+Pode-se utilizar o argumento limits para alterar-se a ordem das categorias.
+
+    ° ggplot(Default, aes(x = default, y = balance)) +
+    ° geom_boxplot() +
+    ° scale_x_discrete("Calote", limits = c("Yes", "No"),
+    ° labels = c("Sim", "Não")) +
+    ° labs(y = "Valor devido médio após o pagamento mensal")
+
+    Também pode-se alterar a ordem de variáveis categóricas alterando-se a ordem dos níveis (levels) da variável
+no data.frame original, ou utilizando-se as funções ylim() e xlim(). Experimente.
+
+9.3.2.3 Variáveis de Datas
+    Quando estamos trabalhando com séries temporais, é comum que datas sejam associadas a algum eixo do
+gŕafico, geralmente ao eixo x. As funções padrão para controle de escalas dos eixos, para variáveis de datas,
+são as seguintes:
+
+    ° scale_x_date(name = waiver(), breaks = waiver(), date_breaks = waiver(),
+    ° labels = waiver(), date_labels = waiver(), minor_breaks = waiver(),
+    ° date_minor_breaks = waiver(), limits = NULL, expand = waiver())
+    ° scale_y_date(name = waiver(), breaks = waiver(), date_breaks = waiver(),
+    ° labels = waiver(), date_labels = waiver(), minor_breaks = waiver(),
+    ° date_minor_breaks = waiver(), limits = NULL, expand = waiver())
+    ° scale_x_datetime(name = waiver(), breaks = waiver(), date_breaks = waiver(),
+    ° labels = waiver(), date_labels = waiver(), minor_breaks = waiver(),
+    ° date_minor_breaks = waiver(), limits = NULL, expand = waiver())
+    ° scale_y_datetime(name = waiver(), breaks = waiver(), date_breaks = waiver(),
+    ° labels = waiver(), date_labels = waiver(), minor_breaks = waiver(),
+    ° date_minor_breaks = waiver(), limits = NULL, expand = waiver())
+
+    O scale_*_date é utilizado para variáveis do tipo Date e scale_*_datetime para variáveis do tipo POSIXct.
+A classe POSIXct aceita informações relacionadas a tempo/horário e a classe Date aceita apenas dia, mês e
+ano. O mais importante é a possibilidade de alterar-se o modo como as datas são apresentadas a partir do
+argumento date_labels. Para isso, utilizaremos um exemplo a partir dos dados economics. Primeiro,
+observa-se o resultado padrão do ggplot2:
+
+| > ggplot(economics, aes(x = date, y = unemploy)) +
+| > geom_line()
+
+Agora, suponha que queremos alterar o gráfico para o formato “Jan/1970”:
+
+| > ggplot(economics, aes(x = date, y = unemploy)) +
+| > geom_line() +
+| > scale_x_date(date_labels = "%b/%Y")
+
+    O (%b/%Y) é usado para definir-se o formato de data desejado. Para ver a lista de formatos, use help(strptime).
+
+    Para os breaks, temos duas opções: utilizar-se o argumento breaks, informando um vetor de datas, ou usar-
+se o argumento date_breaks, em que se informa a frequência dos breaks (por exemplo, “1 month” e “5 years”). 
+    Veja os exemplos abaixos:
+
+| > ggplot(economics, aes(x = date, y = unemploy)) +
+| > geom_line() +
+| > scale_x_date(date_breaks = "5 years", date_labels = "%Y")
+| > seq_datas <- seq.Date(as.Date('1970-01-01'),
+| > as.Date('2015-04-01'),
+| > by = '5 years')
+| > ggplot(economics, aes(x = date, y = unemploy)) +
+| > geom_line() +
+| > scale_x_date(breaks = seq_datas, date_labels = "%Y")
+
+9.3.3 Escalas de Cores (color) e Preenchimento (fill)
+    Como nos casos dos eixos x e y, o tipo da variável utilizada define qual o tipo de escala.
+Tipo da Variável Escala Descrição Discreta que escolhe n cores igualmente espaçadas em um 
+disco de cores. É possível editar a luminosidade e a saturação.
+
+    ° grey --> escala de cinza
+    ° brewer --> ver pacote RColorBrewer
+    ° identity --> usa as cores inseridas na própria variável
+    ° manual --> escolhe as cores manualmente
+    ° Contínua gradient --> cria um gradiente de duas cores (low-high)
+    ° gradient2 --> cria um gradiente de cores divergentes (low-mid-high)
+    ° gradientn --> cria um gradiente com n cores
+    
+    A opção brewer pode usar as paletas de cores disponíveis no pacote RColorBrewer.
+
+| > library(RColorBrewer)
+| > display.brewer.all(n=NULL, type="all", select=NULL, exact.n=TRUE,
+| > colorblindFriendly=FALSE)
+
+    No exemplo abaixo, vamos utilizar a função brewer.pal, que retorna um vetor de cores de alguma paleta
+do pacote RColorBrewer. O objeto paleta.gradientn recebe nove cores da paleta Reds. Essas cores são
+utilizadas na função scale_fill_gradientn().
+
+| > paleta.gradientn <- brewer.pal(n = 9, name = 'Reds')
+| > Credit %>%
+| > group_by(Cards, Student) %>%
+| > summarise(Balance = mean(Balance), n = n()) %>%
+| > ggplot(aes(x = Cards, y = Student, fill = Balance)) +
+| > geom_tile() +
+| > scale_fill_gradientn(colors = rev(paleta.gradientn)) +
+| > scale_x_continuous(breaks = 1:9)
+
+    Balance Alguns pacotes também fornecem escalas de cores próprias, como é o caso do pacote viridis.
+
+| > Credit %>%
+| > group_by(Cards, Student) %>%
+| > summarise(Balance = mean(Balance), n = n()) %>%
+| > ggplot(aes(x = Cards, y = Student, fill = Balance)) +
+| > geom_tile() +
+| > viridis::scale_fill_viridis() +
+| > scale_x_continuous(breaks = 1:9)
+
+    Agora, vamos a um exemplo utilizando o scale_color_manual():
+
+| > ggplot(Wage, aes(y = wage, x = age, color = education)) +
+| > geom_point() +
+| > scale_color_manual(values = c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854"))
+
+    Aqui fizemos uma introdução ao componente de escalas. Não tratamos de todas as funções de escalas. A
+ideia é passar-se a lógica geral para se utilizar escalas e não que o usuário decore todas as funções, o que
+seria contraproducente.
