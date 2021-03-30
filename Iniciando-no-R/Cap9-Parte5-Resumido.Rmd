@@ -1,0 +1,102 @@
+---
+title: "Cap9-Parte5-Resumido"
+author: "Carlos Souza"
+date: "30/03/2021"
+output: pdf_document
+---
+
+9.6 Legendas
+    Parte das alterações das legendas pode ser feita via theme(). Essas alterações são gerais para todas as
+legendas. Se o interesse for em mudanças pontuais na legenda de algum elemento estético, serão utilizadas
+as funções guides(), guide_legend() e guide_colorbar().
+
+guide_legend(title = waiver(), title.position = NULL, title.theme = NULL,
+    title.hjust = NULL, title.vjust = NULL, label = TRUE,
+    label.position = NULL, label.theme = NULL, label.hjust = NULL,
+    label.vjust = NULL, keywidth = NULL, keyheight = NULL,
+    direction = NULL, default.unit = "line", override.aes = list(),
+    nrow = NULL, ncol = NULL, byrow = FALSE, reverse = FALSE, order = 0, ...)
+
+guide_colourbar(title = waiver(), title.position = NULL, title.theme = NULL,
+    title.hjust = NULL, title.vjust = NULL, label = TRUE,
+    label.position = NULL, label.theme = NULL, label.hjust = NULL,
+    label.vjust = NULL, barwidth = NULL, barheight = NULL, nbin = 20,
+    raster = TRUE, ticks = TRUE, draw.ulim = TRUE, draw.llim = TRUE,
+    direction = NULL, default.unit = "line", reverse = FALSE, order = 0, ...)
+
+    O código abaixo exemplifica o uso do guide_legend():
+
+ggplot(diamonds, aes(x = carat, y = price, color = cut, shape = cut)) +
+    geom_point() +
+    guides(color = guide_legend(title = "Cor", title.position = "left", keywidth = 5),
+    shape = guide_legend(title = "Forma", title.position = "right", override.aes = aes(size = 5)))
+
+    Pode-se fazer uso do “none” para omitir-se a legenda de um elemento estético:
+
+ggplot(diamonds, aes(x = carat, y = price, color = cut, shape = cut)) +
+    geom_point() +
+    guides(color = guide_legend(title = "Cor", title.position = "left", keywidth = 5),
+    shape = "none")
+
+9.7 Escolhendo o tipo de gráfico
+    Antes de decidir qual gráfico você utilizará, é preciso saber o que se deseja representar. O objetivo guiará o
+tipo de gráfico mais adequado. A imagem abaixo apresenta uma lista bastante completa de possibilidades
+de gráficos, dos mais simples aos mais complexos.
+    Os gráficos mais tradicionais podem ser facilmente criados a partir da lógica de camadas do ggplot2 e dos
+objetos geométricos disponíveis no pacote. Para gráficos mais complexos, alguns pacotes estão disponíveis.
+Por exemplo, para a criação de treemaps, existe o pacote treemapify.
+
+library(treemapify)
+ggplot(G20, aes(area = gdp_mil_usd, fill = hdi, label = country)) +
+    geom_treemap() +
+    geom_treemap_text(fontface = "italic", colour = "white", place = "centre",
+    grow = TRUE) +
+    theme(legend.position = 'bottom')
+
+9.8 Gráfico de Dispersão (geom_point())
+
+geom_point(mapping = NULL, data = NULL, stat = "identity", position = "identity",
+..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE)
+
+    O gráfico de dispersão é bastante usado para verificar-se relações entre duas variáveis quantitativas. Para
+exemplificar, utilizaremos a base disponível no pacote gapminder. Nesta base, existe uma variável de expec-
+tativa de vida e outra de renda per capita.
+
+    Como queremos um gráfico de pontos, o objeto geométrico natural é o geom_point(). Esse objeto geométrico
+tem os seguintes elementos estéticos:
+
+    - Os parâmetros estéticos (aes) são:
+
+    • x
+    • y
+    • alpha
+    • colour
+    • fill
+    • shape
+    • size
+    • stroke
+
+    Vamos verificar qual é a relação entre essas duas variáveis:
+
+library(hrbrthemes)
+library(gapminder)
+gapminder %>%
+filter(year == max(year)) %>%
+ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point() +
+    labs(title = "Relação entre Renda per Capita e Expectativa de Vida - 2007",
+    x = "Renda per Capita",
+    y = "Expectativa de Vida") +
+    theme_ipsum(plot_title_size = 12,
+    axis_title_size = 10)
+
+gapminder %>%
+filter(year == max(year)) %>%
+ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point() +
+    scale_x_log10() +
+    labs(title = "Relação entre Renda per Capita e Expectativa de Vida - 2007",
+    x = "Renda per Capita (escala log 10)",
+    y = "Expectativa de Vida") +
+    theme_ipsum(plot_title_size = 12,
+    axis_title_size = 10)
