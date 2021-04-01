@@ -1,0 +1,104 @@
+---
+title: "Cap9-Parte7-Resumido"
+author: "Carlos Souza"
+date: "01/04/2021"
+output: pdf_document
+---
+
+9.11 Gráficos de linhas
+    Os gráficos de linhas são, geralmente, utilizados para apresentar-se a evolução de uma 
+variável quantitativa em um intervalo de tempo.
+
+    ° geom_line(mapping = NULL, data = NULL, stat = "identity", position = "identity",
+    ° na.rm = FALSE, show.legend = NA, inherit.aes = TRUE, ...)
+
+Os parâmetros estéticos (aes) são:
+
+    • x
+    • y
+    • alpha
+    • colour
+    • linetype
+    • size
+
+| > gapminder %>%
+| > group_by(continent, year) %>%
+| > summarise(lifeExp = mean(lifeExp)) %>%
+| > ggplot(aes(x = year, y = lifeExp, color = continent)) +
+| > geom_line() +
+| > labs(title = "Evolução da expectativa de vida por continente",
+| >     x = "Ano",
+| >     y = "Anos de vida",
+| >     color = "Continente") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    É bastante comum que gráficos de linhas apresentem marcações para os períodos em que realmente existem
+os dados. Para isso, podemos adicionar uma camada de pontos:
+
+| > gapminder %>%
+| > group_by(continent, year) %>%
+| > summarise(lifeExp = mean(lifeExp)) %>%
+| > ggplot(aes(x = year, y = lifeExp, color = continent)) +
+| > geom_line() +
+| > geom_point(aes(shape = continent)) +
+| > labs(title = "Evolução da expectativa de vida por continente",
+| >     x = "Ano",
+| >     y = "Anos de vida",
+| >     color = "Continente",
+| >     shape = "Continente") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+9.12 Histogramas e freqpoly
+
+    ° geom_freqpoly(mapping = NULL, data = NULL, stat = "bin",
+        position = "identity", ..., na.rm = FALSE, show.legend = NA,
+        inherit.aes = TRUE)
+
+    ° geom_histogram(mapping = NULL, data = NULL, stat = "bin",
+        position = "stack", ..., binwidth = NULL, bins = NULL, na.rm = FALSE,
+        show.legend = NA, inherit.aes = TRUE)
+
+    Os histogramas são utilizados para representar-se a distribuição de dados de uma variável quantitativa 
+em intervalos contínuos. Esses intervalos são chamados de bins. Para cada bin, será apresentada a quantidade
+de valores que estão naquele intervalo. 
+    A diferença para o geom_freqpoly é que este utiliza linhas para construir polígonos, 
+enquanto o geom_histogram utiliza barras.
+    Conforme a documentação do ggplot2, o geom_histogram() utiliza os mesmos elementos estéticos do
+geom_bar(). Já o geom_freqpoly() utiliza os mesmo do geom_line().
+
+| > gapminder %>%
+| > filter(year == 2007) %>%
+| > ggplot(aes(x = lifeExp)) +
+| > geom_histogram(binwidth = 5, fill = 'dodgerblue', color = 'black') +
+| > labs(title = "Distribuição da expectativa vida",
+| >     x = "Anos",
+| >     y = "Contagem") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+| > gapminder %>%
+| > filter(year == 2007) %>%
+| > ggplot(aes(x = lifeExp)) +
+| > geom_freqpoly(binwidth = 5) +
+| > labs(title = "Distribuição da expectativa vida",
+| > x = "Anos",
+| > y = "Contagem") +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+    Transformando em proporção:
+
+| > gapminder %>%
+| > filter(year == 2007) %>%
+| > ggplot(aes(x = lifeExp)) +
+| > geom_histogram(aes(y = ..count../sum(..count..)),binwidth = 5, fill = 'dodgerblue', color = 'black') +
+| > labs(title = "Distribuição da expectativa vida",
+| >     x = "Anos",
+| >     y = "Proporção") +
+| > scale_y_continuous(labels = scales::percent_format()) +
+| > theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    O ggplot2, internamente, criou a variável '..count...' Dessa forma, podemos utilizá-la para criar as proporções.
