@@ -1,0 +1,112 @@
+---
+title: "Cap9-Parte6-Resumido"
+author: "Carlos Souza"
+date: "31/03/2021"
+output: pdf_document
+---
+
+9.9 Gráficos de Bolhas
+    O gráfico de bolha é uma extensão natural do gráfico de pontos. Ele permite observar-se possíveis relações
+entre as três variáveis. Para este tipo de gráfico, são necessárias três variáveis: duas para indicarem as
+posições x e y e uma terceira para definir o tamanho do ponto (size). Vamos utilizar a variável pop (população):
+
+| > gapminder %>%
+| > filter(year == max(year)) %>%
+| > ggplot(aes(x = gdpPercap, y = lifeExp,
+| >     size = pop)) +
+| >     geom_point() +
+| >     scale_size_continuous("População (milhões)", labels = function(x) round(x/1e6)) +
+| >     scale_x_log10() +
+| >     labs(title = "Relação entre Renda per Capita e Expectativa de Vida - 2007",
+| > x = "Renda per Capita (escala log 10)",
+| > y = "Expectativa de Vida") +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+9.10 Gráficos de Barras
+
+    Os gráficos de barras/colunas são geralmente utilizados para comparações entre categorias (variáveis quali-
+tativas). No ggplot2 podemos usar dois objetos geométricos distintos:
+
+° geom_bar(mapping = NULL, data = NULL, stat = "count", position = "stack", ...,
+° width = NULL, binwidth = NULL, na.rm = FALSE, show.legend = NA,
+° inherit.aes = TRUE)
+
+° geom_col(mapping = NULL, data = NULL, position = "stack", ...,
+° width = NULL, na.rm = FALSE, show.legend = NA, inherit.aes = TRUE)
+
+    Os parâmetros estéticos (aes) são:
+
+    • x
+    • y (somente com stat=identity)
+    • alpha
+    • colour
+    • fill
+    • linetype
+    • size
+
+    Há um detalhe importante para o geom_bar(): o argumento stat. Por padrão, para este objeto geométrico,
+o valor de stat é count, o que significa que ele fará uma contagem dos elementos do eixo x. Essa contagem
+será usada no eixo y. Por exemplo:
+
+| > ggplot(diamonds, aes(x = cut)) +
+| > geom_bar() +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+    Para cada valor da variável cut, o ggplot2 calculou o número de observações no data.frame diamonds.
+Para que o y seja mapeado para uma variável do data.frame, é necessário definir stat = identity.
+
+| > gapminder %>%
+| > filter(year == max(year),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = country, y = lifeExp)) +
+| > geom_bar(stat = "identity", fill = "dodgerblue") +
+| > labs(title = "Expectativa de vida por país",
+| > subtitle = "2007",
+| > x = "País",
+| > y = "Expectativa de Vida") +
+| > theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+    Usando o geom_col():
+
+| > gapminder %>%
+| > filter(year == max(year),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = country, y = lifeExp)) +
+| > geom_col(fill = "dodgerblue") +
+| > labs(title = "Expectativa de vida por país",
+| > subtitle = "2007",
+| > x = "País",
+| > y = "Anos") +
+| > theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+    Uma pergunta recorrente é: Como ordenar as barras em ordem crescente/decrescente? Para isso, pode-se
+utilizar a função reorder() no momento do mapeamento. Fica mais claro com um exemplo:
+
+| > gapminder %>%
+| > filter(year == max(year),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = reorder(country, -lifeExp), y = lifeExp)) +
+| > geom_col(fill = "dodgerblue") +
+| > labs(title = "Expectativa de vida por país",
+| > subtitle = "2007",
+| > x = "País",
+| > y = "Anos") +
+| > theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+    Também é comum representar-se as barras de forma horizontal. Para isto basta usar a função coord_flip():
+
+| > gapminder %>%
+| > filter(year %in% c(1957, 2007)) %>%
+| > # Converte o ano para factor --> será categoria no gráfico
+| > mutate(year = factor(year)) %>% group_by(continent, year) %>%
+| > summarise(lifeExp = mean(lifeExp)) %>% ggplot(aes(x = continent, y = lifeExp, fill = year)) +
+| > geom_col(position = "dodge") +
+| > coord_flip() +
+| > labs(title = "Expectativa de vida por continente",
+| >     x = "Continente",
+| >     y = "Anos",
+| >     fill = "Ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
