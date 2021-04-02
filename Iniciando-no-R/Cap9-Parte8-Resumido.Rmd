@@ -1,0 +1,94 @@
+---
+title: "Cap9-Parte8-Resumido"
+author: "Carlos Souza"
+date: "02/04/2021"
+output: pdf_document
+---
+
+9.13 Boxplots, jitterplots e violinplots
+
+    O boxplot é uma representação comum para apresentar-se a distribuição de uma variável a partir de seus
+quantis. A imagem abaixo detalha como um boxplot é formado.
+    O boxplot também pode ser usado para verificar-se a distribuição de variável para um conjunto de valores
+de uma segunda variável. Por exemplo: qual é a distribuição da expectativa de vida por ano?
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > geom_boxplot(fill = "dodgerblue") +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    Vemos que existe um possível outlier em 1992. Quando falarmos sobre anotações, voltaremos a este gráfico.
+
+    Para termos uma visão da distribuição geral dos valores por ano, podemos utilizar o geom_violin(). O
+violinplot baseia-se na densidade de probabilidade de uma variável contínua. Assim, é possível verificar-se
+em quais intervalos existe uma maior chance de ocorrência. Isto é representado pela parte mais larga do
+objeto.
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > geom_violin(fill = "dodgerblue") +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    O jitterplot é utilizado para evitar-se o problema do overplotting em um gráfico. Note, no gráfico abaixo,
+que não sabemos se a marcação de um ponto representa uma única observação ou várias.
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > geom_point() +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >    theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    Para observarmos a real distribuição, é necessário adicionar-se um pouco de ruído, a fim de que os pontos
+se afastem um pouco:
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > geom_jitter() +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+9.14 Anotações
+    Para criarmos anotações no ggplot2, podemos utilizar a função annotate().
+Primeiro, vamos manipular os dados para saber qual é aquele ponto:
+
+| > gapminder %>%
+| > filter(year == 1992, lifeExp == min(lifeExp))
+| > ## # A tibble: 1 x 6
+| > ## country continent year lifeExp pop gdpPercap
+| > ## <fctr> <fctr> <int> <dbl> <int> <dbl>
+| > ## 1 Rwanda Africa 1992 23.599 7290203 737.0686
+
+    Com essas informações, podemos adicionar uma anotação ao gráfico:
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > geom_boxplot(fill = "dodgerblue") +
+| > annotate("text", x = "1992", y = 27, label = "Ruanda") +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+    Também podemos adicionar segmentos e retângulos com o annotate(). Vamos marcar o período de 1982 a
+2002 com um retângulo:
+
+| > ggplot(gapminder, aes(x = factor(year), y = lifeExp)) +
+| > annotate("text", x = "1992", y = 27, label = "Ruanda") +
+| > annotate("rect", xmin = "1982", ymin = 20,
+| >     xmax = "2002", ymax = 95, alpha = 0.2) +
+| > geom_boxplot(fill = "dodgerblue") +
+| > labs(y = "Anos de vida",
+| >     x = "Ano",
+| >     title = "Distribuição da expectativa de vida por ano") +
+| >     theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
