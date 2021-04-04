@@ -1,0 +1,276 @@
+---
+title: "Cap9-Parte10-Resumido"
+author: "Carlos Souza"
+date: "04/04/2021"
+output: pdf_document
+---
+
+9.18 Mapas
+  No primeiro exemplo, usaremos um arquivo de dados que já possui as informações necessárias para criarmos o mapa. No segundo, será mostrado o processo a partir de um shapefile (*.shp), que é um formato utilizado
+para o armazenamento de dados geoespaciais.
+  Os dados para a criação do mapa estão disponíveis no arquivo world_map.csv. Neste arquivo existem 177 regiões e, onde possível, estas estão correlacionadas com o nome disponível na base do MDIC.
+  
+| > library(readr)
+| > world_map <- read_delim('dados/world_map.csv', delim = ";",
+| > locale = locale(encoding = "ISO-8859-1",
+| > decimal_mark = ","))
+## Parsed with column specification:
+## cols(
+## long = col_double(),
+## lat = col_double(),
+## order = col_integer(),
+## hole = col_logical(),
+## piece = col_integer(),
+## id = col_character(),
+## group = col_character(),
+## NO_PAIS_POR = col_character()
+## )
+| > head(world_map)
+## # A tibble: 6 x 8
+## long lat order hole piece id group
+## <dbl> <dbl> <int> <lgl> <int> <chr> <chr>
+## 1 61.21082 35.65007 1 FALSE 1 Afghanistan Afghanistan.1
+## 2 62.23065 35.27066 2 FALSE 1 Afghanistan Afghanistan.1
+## 3 62.98466 35.40404 3 FALSE 1 Afghanistan Afghanistan.1
+## 4 63.19354 35.85717 4 FALSE 1 Afghanistan Afghanistan.1
+## 5 63.98290 36.00796 5 FALSE 1 Afghanistan Afghanistan.1
+## 6 64.54648 36.31207 6 FALSE 1 Afghanistan Afghanistan.1
+## # ... with 1 more variables: NO_PAIS_POR <chr>
+
+  As colunas long e lat serão mapeadas para os eixos x e y e será utilizado o objeto geométrico polígono (geom_polygon()). A coluna group será utilizada para que seja criado um polígono para cada região, evitando sobreposições das linhas.
+  Para a criação do gráfico, removeremos a região Antarctica e realizaremos um left_join() com os dados de exportações por país de destino no ano de 2015, disponível no arquivo EXP_2015_PAIS.txt. Também criaremos classes para os valores exportados.
+  
+# Remover Antarctica
+| > world_map <- world_map %>%
+| > filter(id != "Antarctica")
+| > exp.2015 <- read_delim('dados/EXP_2015_PAIS.csv', delim = ";",
+| >     locale = locale(encoding = "ISO-8859-1"),
+| >     col_types = 'ccd')
+| > world_map <- left_join(world_map, exp.2015, by = "NO_PAIS_POR") %>%
+| > mutate(class = cut(VL_FOB, breaks = c(0, 1e6, 10e6, 100e6, 1e9, 10e9, 
+| > Inf)))
+| > ggplot(world_map, aes(x = long, y = lat, group = group)) +
+| > geom_polygon(aes(fill = class), col = 'black', size = 0.1) +
+| > scale_fill_brewer(palette = "Reds", breaks = levels(world_map$class),
+| > labels = c("(0, 1 Mi]", "(1 Mi, 10 Mi]", "(10 Mi, 100 Mi]",
+| > "(100 Mi, 1 Bi]", "(1 Bi, 10 Bi]", "> 10 Bi"), na.value = 'grey70') +
+| > labs(title = "Exportações Brasileiras - 2015",
+| >     subtitle = 'Valor FOB') +
+| >     coord_quickmap() +
+| > theme(axis.text.x = element_blank(),
+| > axis.text.y = element_blank(),
+| > axis.title.x = element_blank(),
+| > axis.title.y = element_blank())
+
+  Como dito, o segundo exemplo será realizado a partir de arquivos do tipo shapefile. O Instituto Brasileiro de Geografia e Estatística (IBGE) disponibiliza shapefiles para o Brasil em diferentes níveis, unidades federativas, municípios, mesorregiões e microrregiões. Os arquivos estão disponíveis neste link.
+  Para a leitura do shapefile, serão necessários alguns pacotes: rgdal, maptools, rgeos e broom. A função ogrListLayers() lista as camadas disponíveis em um shapefile. Para ler-se o arquivo para o R, utiliza-se a função: readOGR(). Após ler-se o shapefile para o R, é preciso transformá-lo para um formato em que o ggplot2 possa gerar a visualização. 
+  A função tidy() realiza essa tarefa. Essa função também transforma
+objetos de outras classes para data.frames.
+
+| > library(rgdal)
+| > library(maptools)
+| > library(rgeos)
+| > library(broom)
+| > ogrListLayers('dados/mapas/mg_municipios/31MUE250GC_SIR.shp')
+## [1] "31MUE250GC_SIR"
+## attr(,"driver")
+## [1] "ESRI Shapefile"
+## attr(,"nlayers")
+## [1] 1
+| > mg_mapa <- readOGR('dados/mapas/mg_municipios/31MUE250GC_SIR.shp',
+| >   layer = '31MUE250GC_SIR')
+## OGR data source with driver: ESRI Shapefile
+## Source: "dados/mapas/mg_municipios/31MUE250GC_SIR.shp", layer: "31MUE250GC_SIR"
+## with 853 features
+## It has 2 fields
+
+  Os arquivos shapefile também fornecem dados sobre as regiões, disponíveis no arquivo. No caso do exemplo acima, são fornecidos o código e o nome do município.
+  
+| > mg_mapa_data <- data.frame(mg_mapa)
+| > head(mg_mapa_data)
+## NM_MUNICIP CD_GEOCMU
+## 0 ABADIA DOS DOURADOS 3100104
+## 1 ABAETÉ 3100203
+## 2 ABRE CAMPO 3100302
+## 3 ACAIACA 3100401
+## 4 AÇUCENA 3100500
+## 5 ÁGUA BOA 3100609
+
+  Na criação do data.frame, com uso da função fortify(), é preciso informar a variável que identificará a região. No exemplo, CD_GEOCMU.
+  
+#mg_mapa <- fortify(mg_mapa, region = "CD_GEOCMU")
+| > mg_mapa <- tidy(mg_mapa, region = "CD_GEOCMU")
+# Para adicionar os nomes dos municípios
+| > mg_mapa <- left_join(mg_mapa, mg_mapa_data, by = c("id" = "CD_GEOCMU"))
+## Warning: Column `id`/`CD_GEOCMU` joining character vector and factor,
+## coercing into character vector
+| > ggplot(mg_mapa, aes(x = long, y = lat, group = group)) +
+| > geom_polygon(color = 'black', fill = 'white', size = 0.1) +
+| > coord_quickmap()
+
+  Com o mapa pronto, faltam os dados que serão plotados.
+
+| > REM_RAIS_MG_2015 <- read_delim('dados/REM_RAIS_MG_2015.csv',
+| > delim = ";",
+| > col_types = 'cd',
+| > skip = 1,
+| > col_names = c("Mun.Trab", "mediana"),
+| > locale = locale(encoding = 'ISO-8859-1'))
+| > REM_RAIS_MG_2015 <- REM_RAIS_MG_2015 %>%
+| > mutate(mediana = ifelse(mediana > 1500, 1500, mediana))
+| > head(REM_RAIS_MG_2015)
+## # A tibble: 6 x 2
+## Mun.Trab mediana
+## <chr> <dbl>
+## 1 315820 788.0
+## 2 313865 827.4
+## 3 311880 831.0
+## 4 313980 831.0
+## 5 312290 831.0
+## 6 315760 831.0
+| > mg_mapa <- mg_mapa %>%
+| > mutate(Mun.Trab = substr(id, 1, 6))
+| > mg_mapa <- left_join(mg_mapa, REM_RAIS_MG_2015, by = "Mun.Trab")
+
+  Para criarmos a visualização:
+  
+| > cores.virides <- viridis::viridis(n = 20)
+| > ggplot(mg_mapa, aes(x = long, y = lat, group = group, fill = mediana)) +
+| > geom_polygon(color = 'black', size = 0.1) +
+| > scale_fill_gradientn(colours = cores.viridis,
+| >   breaks = c(800, 1150, 1500),
+| >   labels = c("\u2264 800", "1.150", "\u2265 1.500")) +
+| > labs(title = "Mediana da Remuneração ",
+| >   subtitle = "Minais Gerais - Dezembro/2015. Valores em R$",
+| >   caption = "Fonte: RAIS/MTE") +
+| > coord_quickmap() +
+| > theme(axis.text.x = element_blank(),
+| > axis.text.y = element_blank(),
+| > axis.title.x = element_blank(),
+| > axis.title.y = element_blank())
+
+9.18.1 Simplificando o shapefile
+
+  Em algumas vezes o shapefile pode ser bastante grande, tornando a renderização e o arquivo final relativamente “pesados”. É possível simplificar o shapefile com a função gSimplify(). Veja o exemplo abaixo:
+
+| > library(rgeos)
+| > mg_mapa <- readOGR('dados/mapas/mg_municipios/31MUE250GC_SIR.shp',
+| >   layer = '31MUE250GC_SIR')
+## OGR data source with driver: ESRI Shapefile
+## Source: "dados/mapas/mg_municipios/31MUE250GC_SIR.shp", layer: "31MUE250GC_SIR"
+## with 853 features
+## It has 2 fields
+| > df <- data.frame(mg_mapa)
+| > mg_mapa <- gSimplify(mg_mapa, tol=0.01, topologyPreserve = TRUE)
+| > mg_mapa = SpatialPolygonsDataFrame(mg_mapa, data=df)
+| > mg_mapa <- tidy(mg_mapa, region = "CD_GEOCMU")
+| > # Para adicionar os nomes dos municípios
+| > mg_mapa <- left_join(mg_mapa, mg_mapa_data, by = c("id" = "CD_GEOCMU"))
+## Warning: Column `id`/`CD_GEOCMU` joining character vector and factor,
+## coercing into character vector
+| > ggplot(mg_mapa, aes(x = long, y = lat, group = group)) +
+| > geom_polygon(color = 'black', fill = 'white', size = 0.1) +
+| > coord_quickmap()
+
+9.18.2 Encoding dos dados do shapefile
+
+  É possível que os nomes das regiões apresentem problemas de codificações se o arquivo estiver em UTF-8 e o usuário estiver usando o Windows. Nesse caso, pode-se usar a função iconv() para converter o encoding.
+  
+| > mg_mapa <- readOGR('dados/mapas/mg_municipios/31MUE250GC_SIR.shp',
+| > layer = '31MUE250GC_SIR')
+| > mg_mapa@data$NM_MUNICIP <- iconv(mg_mapa@data$NM_MUNICIP,
+| > from = "UTF-8",
+| > to = "ISO-8859-1")
+
+9.19 Salvando Gráficos
+
+  Há duas formas de salvar o gráfico gerado pelo ggplot2. A primeira delas é clicando no botão Export na aba Plots. Lá existirão três opções: exportar para o clipboard, salvar como PDF ou salvar como imagem.
+  
+| > knitr::include_graphics('images/salvar_plot.gif')
+
+  A outra opção é usar a função ggsave():
+  
+  °ggsave(filename, plot = last_plot(), device = NULL, path = NULL,
+  °scale = 1, width = NA, height = NA, units = c("in", "cm", "mm"),
+  °dpi = 300, limitsize = TRUE, ...)
+  
+  O argumento device é usado para escolher-se o tipo de arquivo(“eps”, “ps”, “tex” (pictex), “pdf”, “jpeg”, “tiff”, “png”, “bmp”, “svg” or “wmf”).
+
+9.20 Extensões do ggplot2
+
+  Um conjunto de pacotes fornece extensões ao ggplot2. Ou seja, cria funcionalidades não existentes no pacote original.
+
+9.20.1 ggrepel
+
+  O ggrepel é importante para evitar que textos (geom_text) e rótulos (geom_label) se sobreponham. Veja o mesmo gráfico sem e com o ggrepel:
+
+| > library(ggrepel)
+| > data(mtcars)
+| > ggplot(mtcars, aes(wt, mpg)) +
+| > geom_point(color = 'red') +
+| > geom_text(aes(label = rownames(mtcars))) +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+| > library(ggrepel)
+| > data(mtcars)
+| > ggplot(mtcars, aes(wt, mpg)) +
+| > geom_point(color = 'red') +
+| > geom_text_repel(aes(label = rownames(mtcars))) +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10)
+
+9.20.2 gganimate
+
+  Outra extensão muito interessante é o gganimate. Com esta extensão é possível criar gifs (animações) de gráficos do ggplot2. O ponto fundamental é definir-se uma variável que controlará os frames, ou seja, as imagens que serão sobrepostas para compor-se a animação.
+  Veja o exemplo abaixo:
+
+| > # O pacote não está no cran
+| > #devtools::install_github("dgrtwo/gganimate")
+| > library(gganimate)
+| > p <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp,
+| > size = pop, color = continent,
+| > frame = year)) +
+| > geom_point() +
+| > scale_x_log10()
+| > animation::ani.options(interval = 1)
+| > x <- gganimate(p, filename = 'images/gapminder1.gif',
+| > ani.width = 750,
+| > ani.height = 450)
+
+  É possível suavizar a animação com o pacote tweenr. É um pouco complicado, mas fica o exemplo abaixo
+retirado deste post:
+
+| > library(tweenr)
+| > years <- unique(gapminder$year)
+| > gapminder_list <- list()
+| > for(i in 1:length(years)){
+| > j <- years[i]
+| > gapminder_list[[i]] <- gapminder %>%
+| > filter(year == j)
+| > }
+| > tf <- tween_states(gapminder_list,
+| > tweenlength = 2,
+| > statelength = 0,
+| > ease = rep("linear", length(gapminder_list)),
+| > nframes = 308)
+| > tf2 <- expand.grid(y = 80, x = 10^(2.5), year = seq(1957, 2007, 5))
+| > tf2 <- split(tf2, tf2$year)
+| > tf2 <- tween_states(tf2,
+| > tweenlength = 2,
+| > statelength = 0,
+| > ease = rep("linear", length(tf2)),
+| > nframes = 308)
+| > tf2 <- tf2 %>%
+| > mutate(year = rep(seq(1957, 2007, 5), each = 29)[1:310])
+| > p2 <- ggplot(tf, aes(x=gdpPercap, y=lifeExp, frame = .frame)) +
+| > geom_point(aes(size=pop, color=continent), alpha=0.8) +
+| > geom_text(data = tf2, aes(x = x, y = y, label = year)) +
+| >     xlab("GDP per capita") +
+| >     ylab("Life expectancy at birth") +
+| >     scale_x_log10()
+| >     animation::ani.options(interval = 1/20)
+| > x <- gganimate(p2, filename = 'images/gapminder2.gif',
+| > ani.width = 750,
+| > ani.height = 450,
+| > title_frame = FALSE)
