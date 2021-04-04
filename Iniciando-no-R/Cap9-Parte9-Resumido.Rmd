@@ -1,0 +1,149 @@
+---
+title: "Cap9-Parte9-Resumido"
+author: "Carlos Souza"
+date: "03/04/2021"
+output: pdf_document
+---
+
+9.15 Cleveland Dot Plot
+
+  O cleveland dot plot é uma visualização que pode substituir os gráficos de barras. A ideia é que o gráfico fica menos poluído com os pontos, fazendo com que o leitor foque no que é importante. Vamos criar um gráfico para comparar as expectativas de vida no ano de 2007 para os países das Américas:
+  
+| > gapminder %>%
+| > filter(year == 2007,
+| > continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = reorder(country, lifeExp))) +
+| > geom_point(size = 3, color = "dodgerblue") +
+| > labs(title = "Expectativa de vida por país - 2007",
+| >   y = "País",
+| >   x = "Anos") +
+| > theme_ipsum(plot_title_size = 12,
+| >   axis_title_size = 10) +
+| > theme(panel.grid.major.y = element_line(linetype = "dashed"))
+
+  Esse tipo de gráfico também pode apresentar mais de um ponto para cada valor da variável categórica (país):
+  
+| > gapminder %>%
+| > filter(year %in% c(1987, 2007),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = country, color = factor(year))) +
+| > geom_point(aes(color = factor(year))) +
+| > labs(title = "Expectativa de vida por país - 1987 e 2007",
+| >   y = "País",
+| >   x = "Anos",
+| >   color = "Ano") +
+| > theme_ipsum(plot_title_size = 12,
+| >   axis_title_size = 10) +
+| > theme(panel.grid.major.y = element_line(linetype = "dashed"))
+
+  Para completarmos o gráfico, precisamos adicionar uma linha conectando esses dois pontos. Esse gráfico é chamado de connected dot plot. Um detalhe importante é que queremos criar uma linha por país, assim, usaremos o elemento estético group para obter o resultado esperado:
+  
+| > gapminder %>%
+| > filter(year %in% c(1987, 2007),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = country)) +
+| > geom_line(aes(group = country)) +
+| > geom_point(aes(color = factor(year))) +
+| > labs(title = "Expectativa de vida por país - 1987 e 2007",
+| >     y = "País",
+| >     x = "Anos",
+| >     color = "Ano") +
+| > theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10) +
+| > theme(panel.grid.major.y = element_line(linetype = "dashed"))
+
+  Para finalizar, vamos ordenar o eixo y pela expectativa de vida:
+  
+| > gapminder %>%
+| > filter(year %in% c(1987, 2007),
+| > continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = reorder(country, lifeExp, max))) +
+| > geom_line(aes(group = country), color = "grey50") +
+| > geom_point(aes(color = factor(year))) +
+| > labs(title = "Expectativa de vida por país - 1987 e 2007",
+| >     y = "País",
+| >     x = "Anos",
+| >     color = "Ano") +
+| > theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10) +
+| > theme(panel.grid.major.y = element_line(linetype = "dashed"))
+
+9.16 Textos/Rótulos
+
+geom_label(mapping = NULL, data = NULL, stat = "identity", position = "identity",
+..., parse = FALSE, nudge_x = 0, nudge_y = 0, (...))
+
+  Os parâmetros estéticos (aes) são:
+  
+  • label
+  • x
+  • y
+  • alpha
+  • angle
+  • colour
+  • family
+  • fontface
+  • hjust
+  • lineheight
+  • size
+  • vjust
+  
+  Para adicionar textos ou rótulos, utilizamos, respectivamente, o geom_text() e o geom_label(), que se diferenciam na formatação. Isto ficará mais claro nos exemplos 
+a seguir:
+
+| > gapminder %>%
+| > filter(year == 2007,
+| > continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = reorder(country, lifeExp))) +
+| > geom_segment(x = 0, aes(xend = lifeExp, yend = country),
+| > color = "grey50") +
+| > geom_point(size = 3, color = "dodgerblue") +
+| > geom_text(aes(label = round(lifeExp))) +
+| > labs(title = "Expectativa de vida por país - 2007",
+| >     y = "País",
+| >     x = "Anos") +
+| > theme_ipsum(plot_title_size = 12,
+| >     axis_title_size = 10)
+
+  O resultado ficou bem ruim. O texto foi inserido exatamente na posição (x, y). Para alterar a posição, podemos usar os argumentos hjust, vjust, nudge_x e nudge_y.
+  
+| > gapminder %>%
+| > filter(year == 2007,
+| >   continent == "Americas") %>%
+| > ggplot(aes(x = lifeExp, y = reorder(country, lifeExp))) +
+| > geom_point(size = 3, color = "dodgerblue") +
+| > geom_text(aes(label = round(lifeExp)), nudge_x = 1) +
+| > labs(title = "Expectativa de vida por país - 2007",
+| >   y = "País",
+| >   x = "Anos") +
+| > theme_ipsum(plot_title_size = 12,
+| > axis_title_size = 10) +
+| > theme(panel.grid.major.y = element_line(linetype = "dashed"))
+
+9.17 Plotando funções
+
+  °reta <- function(a, b, x){
+  °a + b * x
+  °}
+  °data <- data.frame(x = seq(0, 10, by = 0.1))
+  °ggplot(data, aes(x = x)) +
+  °stat_function(fun = reta, args = list(a = 1, b = 2)) +
+  °stat_function(fun = reta, args = list(a = 1, b = 3), col = 'red')
+
+  °sigmoid <- function(a = 1,z){
+  °1/(1 + exp(-a * z))
+  °}
+  °data <- data.frame(x = -6:6)
+  °ggplot(data, aes(x = x)) +
+  °stat_function(fun = sigmoid, args = list(a = 1)) +
+  °stat_function(fun = sigmoid, args = list(a = 0.5), color = "blue") +
+  °stat_function(fun = sigmoid, args = list(a = 2), color = "red")
+
+  °logit <- function(a, z){
+  °log(sigmoid(a, z)/(1 - sigmoid(a, z)))
+  °}
+  °data <- data.frame(x = -6:6)
+  °ggplot(data, aes(x = x)) +
+  °stat_function(fun = logit, args = list(a = 1), aes(color = "a = 1")) +
+  °stat_function(fun = logit, args = list(a = 0.5), aes(color = "a = 0.5")) +
+  °stat_function(fun = logit, args = list(a = 2), aes(color = "a = 2"))
