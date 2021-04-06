@@ -1,0 +1,140 @@
+---
+title: "Cap11-Parte1-Resumido"
+author: "Carlos Souza"
+date: "06/04/2021"
+output: pdf_document
+---
+
+Capítulo 11
+
+RMarkdown
+
+    Antes de falarmos sobre o que é RMarkdown, é interessante discutirmos sobre o Markdown.
+Markdown é uma linguagem de marcação, ou seja, não é uma linguagem de programação. Linguagens de
+marcação dizem como algo deve ser entendido, mas não têm capacidade de processamento e execução de
+funções. Por exemplo, HTML é uma linguagem de marcação. Ela apenas diz como uma página web está
+estruturada, mas não executa nenhum processamento. O Markdown, da mesma forma, apenas informa como
+um documento está estruturado.
+    No entanto, a vantagem do Markdown é a sua simplicidade e a possibilidade de utilização de uma linguagem
+comum para a criação de vários tipos de documentos. Por exemplo, um mesmo código Markdown pode ser
+convertido para HTML, LaTeX (gera pdf’s), docx etc. Para isso, é necessário um conversor, que lê um código
+em Markdown e, considerando a escolha do output desejado, converte o arquivo para a linguagem desejada.
+Isto ficará mais claro com os exemplos.
+    E o que é o RMarkdown? Nada mais é do que a possibilidade de executar-se scripts em R (além de outras
+linguagens) e incorporá-los a um arquivo Markdown (extensão .md). O pacote knitr executará “pedaços”
+(chunk) de códigos e gerará um arquivo .md com os códigos e seus resultados. Na sequência, o pandoc, que
+é um conversor, converte-o para a linguagem desejada, gerando os arquivos nos formatos escolhidos (.html,
+.docx, .pdf, .odt). A figura abaixo ilustra o processo:
+    Acesse este link para ver os tipos de formatos disponíveis no RMarkdown. É possível gerar documentos no
+formato Word, pdf formatados para revistas científicas, apresentações, dashboards etc.
+
+11.1 Usos do RMarkdown
+    A seção anterior já deu algumas dicas sobre a utilidade do RMarkdown. Aqui elaboraremos um pouco mais
+sua funcionalidade:
+
+    1. Reprodutibilidade. Isto é importante quando um estudo é realizado. Pode ser que em algum
+momento após a realização do seu estudo outro analista/pesquisador deseje replicá-lo. Um documento
+que une o código às explicações pode ser fundamental neste momento.
+    2. Compartilhamento de informação. É possível que você tenha aprendido a usar um novo pacote
+e ache que ele pode ser interessante para outros colegas. Com o RMarkdown, você poderá criar um
+documento com exemplos de uso do pacote, facilmente compartilhável.
+    3. Documentação de Rotinas. A criação de rotinas para a realização de tarefas repetitivas é cada vez
+mais comum. No entanto, é importante que haja uma boa documentação da rotina para que você ou
+outro colega possa entender e dar manutenção à rotina no futuro.
+    4. Relatórios parametrizados. O RMarkdown facilita a criação de relatórios, inclusive dashboards,
+em que a estrutura é padrão, mas os dados dependem de um parâmetro. Por exemplo, relatórios de
+balança comercial por unidade da federação (UF). No caso, a UF seria um parâmetro que variaria de
+relatório para relatório.
+
+11.2 Estrutura de um RMarkdown
+
+    ---
+    title: "Primeiro Exemplo para o Curso de R"
+    author: "Paulo"
+    date: "`r format(Sys.time(), '%d de %B de %Y')`"
+    output:
+    html_document: default
+    pdf_document:
+    fig_caption: yes
+    fig_height: 3.5
+    fig_width: 7
+    number_sections: yes
+    lang: pt-br
+    ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(OutDec = ",")
+```
+    # Cabeçalho de primeiro nível
+    ## Cabeçalho de segundo nível
+    ### Cabeçalho de terceiro nível
+    # Hello World
+
+    Este é um primeiro exemplo de *RMarkdown* para o **Curso de Introdução ao `R`**.
+
+## Outra Seção
+
+Vamos executar um código:
+```{r, fig.cap="Exemplo de Figura", collapse=TRUE}
+library(ggplot2)
+x <- rnorm(100)
+y <- rnorm(100)
+
+11.2. ESTRUTURA DE UM RMARKDOWN 169
+
+Figura 11.2:
+
+dados <- data.frame(x, y)
+ggplot(dados, aes(x = x, y = y)) +
+geom_point()
+```
+
+A média de x é `r mean(x)`.
+Vamos agora entender qual é a função de cada parte desse código.
+
+    YAML (Configurações):
+    ---
+    title: "Primeiro Exemplo para o Curso de R"
+    author: "Paulo"
+    date: "17 de junho de 2018"
+    output:
+    html_document: default
+    pdf_document:
+    fig_caption: yes
+    fig_height: 3.5
+    fig_width: 7
+    number_sections: yes
+    lang: pt-br
+    ---
+
+    O YAML é o responsável pelas configurações dos documentos. Basicamente, estamos informando qual é o
+título do documento, a data de criação, o nome do autor e o tipo de output que desejamos. No exemplo,
+está definido como output pdf_document e foram adicionadas opções para que as seções fossem numeradas
+e de tamanho das figuras. Caso quiséssemos um arquivo no formato Word (.docx), o output poderia ser
+modificado para word_document. Cada formato possui um conjunto de opções disponíveis. Nesse caso, é
+importante olhar-se a página de cada formato disponível na documentação do RMarkdown.
+Code Chunks:
+    Os Code Chunks são pedaços de código em R que podem ser executados para gerar resultados que serão
+incorporados ao documento. Você pode inserir um chunk manualmente ou com o atalho CTRL + ALT + I.
+Dentro de {} é possível incluir uma série de opções relacionadas à execução do código. Abaixo, falaremos
+sobre algumas dessas opções.
+
+Textos e Markdown:
+    Na figura acima, é mostrado como o texto se mistura com o código de markdown. Esse código markdown,
+quando convertido, gerará a formatação desejada. Na próxima seção, detalharemos o que cada marcação faz.
+
+11.3 Renderizando um documento
+    Há duas formas de se renderizar um documento .Rmd. A primeira é via função render() do pacote
+rmarkdown.
+
+    °render(input, output_format = NULL, output_file = NULL, output_dir = NULL,
+    °output_options = NULL, intermediates_dir = NULL,
+    °runtime = c("auto", "static", "shiny"),
+    °clean = TRUE, params = NULL, knit_meta = NULL, envir = parent.frame(),
+    °run_pandoc = TRUE, quiet = FALSE, encoding = getOption("encoding"))
+
+    Veja no help a função de cada argumento. Essa função é especialmente importante quando a renderização de
+um RMarkdown está inserida dentro de uma rotina. Por exemplo, pode-se usar a função render() dentro
+de um loop para criar-se vários pdf’s a partir de um relatório parametrizado.
+A outra opção é usando o botão knit, disponível na interface do RStudio.
