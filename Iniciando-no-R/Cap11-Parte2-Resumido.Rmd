@@ -1,0 +1,203 @@
+---
+title: "Cap11-Parte2-Resumido"
+author: "Carlos Souza"
+date: "07/04/2021"
+output: pdf_document
+---
+
+11.4 Sintaxe
+    Abaixo estão os principais elementos de sintaxe do RMarkdown. Vários são autoexplicativos. Para alguns,
+faremos alguns comentários:
+
+    • Cabeçalhos:
+    # Cabeçalho de primeiro nível
+    ## Cabeçalho de segundo nível
+    ### Cabeçalho de terceiro nível
+
+    O resultado, em um documento com output definido como pdf_document, seria:
+
+• Estilo de texto:
+*Itálico* e **Negrito**
+Itálico e Negrito
+
+• Citações:
+
+    > Aqui vai um texto para citação
+Aqui vai um texto para citação
+
+• Código no texto:
+
+    > `mean(x)`
+mean(x)
+
+• Código processado no texto:
+    A opção abaixo é importante para que resultados do R possam ser incorporados diretamente ao texto do
+documento. Para demonstração, foi necessário darmos um espaço entre a aspa e o código, mas o correto é
+não haver esse espaço.
+
+    > `r mean(c(2, 3, 4))`
+3
+
+• Imagens:
+
+    ![](images/code_chunk.png)
+    ![Título Opcional](images/code_chunk.png)
+
+• Listas não ordenadas:
+
+    * Item a
+    * Item b
+        + Subitem b1
+        + Subitem b2
+
+    • Item a
+    • Item b
+        – Subitem b1
+        – Subitem b2
+
+• Listas ordenadas:
+
+    1. Item 1
+    2. Item 2
+    3. Item 3
+        i. Item 3a
+i       i. Item 3b
+
+    1. Item 1
+    2. Item 2
+    3. Item 3
+        i. Item 3a
+        ii. Item 3b
+
+• Tabelas:
+--------: indica que a Coluna 1 está alinhada à direita. :------------: indica que a coluna está
+centralizada. Alguns pacotes do R fornecem funções para a geração de tabelas a partir de data.frames e
+matrizes. Veja alguns exemplos:
+
+    °Antes:
+
+Coluna 1 | Coluna 2
+-------: | :-------:
+    10   |  Brasil
+    20   |  China
+Fonte: MDIC.
+
+    °Depois:
+
+------------------    
+Coluna 1 Coluna 2
+------------------
+   10    Brasil
+   20    China
+------------------
+Fonte: MDIC.
+
+    °Antes(E Depois também):
+
+--------------------------------------------------------------------
+Column 1 Column 2
+------------------------------------------------------ ------------
+I want the contents of this cell to fit into one line Word1 Word2
+------------------------------------------------------ ------------
+
+    °
+    °Antes:
+
+x <- letters[1:3]
+y <- LETTERS[1:3]
+knitr::kable(data.frame(x, y), align = 'cc')
+
+------|
+x   y |
+a   A |
+b   B |
+c   C |
+------|
+
+• Links:
+Site do [MDIC](www.mdic.gov.br)
+Site do MDIC
+
+• Linha horizontal ou Quebra de Página:
+
+    °Antes:
+
+***
+---
+
+    °Depois:
+
+    -----------
+    -----------
+
+• Equação:
+Modelo linear simples: $y_i = \alpha + \beta x_i + e_i$
+Modelo linear simples: yi = α + βxi + ei
+
+• Equação em Bloco:
+Modelo linear simples: $$y_i = \alpha + \beta x_i + e_i$$
+Modelo linear simples:
+
+yi = α + βxi + ei
+
+11.5 Opções de Chunk
+    Os chunks de códigos ({r, ...}) que possuem uma série de opções. Elencaremos aqui as principais. Para
+a lista completa, veja este link.
+
+#Divide-se assim:
+Opção --> Valor Padrão --> Descrição
+
+eval --> TRUE --> Indica se o código deve ser executado
+
+include --> TRUE --> Indica se o código deve ser exibido no documento final. 
+Os resultados não serão apresentados.
+
+collapse --> FALSE --> Indica se o código e os resultados do chunk devem ser
+colapsados em um bloco único.
+
+echo --> FALSE --> Indica se o código será exibido no documento final. Os
+resultados serão apresentados.
+
+results --> markup --> Se *hide*, os resultados não serão exibidos. 
+Se *hold*, os resultados serão exibidos ao final do chunk. 
+Se asis, os resultados não serão formatados, sendo mostrados os
+resultados “brutos” (código html, tex, ...).
+
+error --> TRUE --> Indica se mensagens de erros serão exibidas.
+
+message --> TRUE --> Indica se mensagens geradas pelo código serão exibidas.
+
+warning --> TRUE --> Indica se avisos gerados pelo código serão exibidos.
+
+fig.cap --> NULL --> Título de gráfico referente ao chunk.
+fig.height --> 7 --> Altura para gráficos criados pelo código (em polegadas).
+fig.width --> 7 --> Largura para gráficos criados pelo código (em polegadas).
+
+11.6 Principais Formatos
+
+11.6.1 HTML
+    A HTML é a linguagem de marcação para construção de páginas web. Assim, se criarmos um documento e
+escolhermos como opção de output html_document, o resultado será uma página a ser aberta em browsers.
+Outros formatos do markdown, como flexdashboard e ioslides, também geram páginas html. Cada tipo de
+formato tem um conjunto de aspectos específicos. Abaixo listamos os principais para html:
+
+• A aparência e o estilo são definidos por um arquivo no formato css. Isso impõe uma dificuldade
+adicional para a formatação do documento. O Rmarkdown fornece alguns temas e pacotes que também
+podem fornecer documentos com alguma formatação de estilo (ver prettydoc);
+
+• Único formato que aceita htmlwidgets (o próprio nome indica isso).
+
+    O código markdown incluído no arquivo .Rmd é convertido pelo pandoc, gerando um documento estruturado
+com código html.
+
+11.6.2 PDF
+    Para a criação de PDFs pelo RMarkdown, utiliza-se o LaTeX (pronuncia-se: Lah-tech or Lay-tech), que
+é um sistema de preparação de documentos muito utilizado pela comunidade científica. Inicialmente, o
+RMarkdown abstrai para o usuário a necessidade de saber-se essa linguagem. 
+    No entanto, como no HTML, se você quiser avançar na estrutura do documento e nos estilos será necessário
+aprender esta linguagem, pelo menos o suficiente para resolver o seu problema.
+    Entre as vantagens do LaTeX estão:
+
+    • Numeração automática de seções (e os demais níveis) e de equações;
+    • Criação automática de legendas com base em arquivos .bib;
+    • Facilidade de referências cruzadas no documento.
