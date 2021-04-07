@@ -1,0 +1,387 @@
+---
+title: "Cap12-Resumido"
+author: "Carlos Souza"
+date: "07/04/2021"
+output: pdf_document
+---
+
+Capítulo 12
+
+Modelos
+
+    O objetivo deste capítulo é dar uma visão geral sobre a estrutura de modelos no R. Isto é, quais são as
+suas funções básicas, como especificar um modelo, recuperar resíduos, realizar predições etc. Esse processo é
+parte fundamental de análises mais aprofundadas. Os modelos podem ser usados, de maneira não exclusiva,
+para exploração de dados, geração de predições e análises de causalidade. Por exemplo:
+
+• Descritivo: relação entre salários, idade, experiência e anos de estudo;
+
+• Predição: modelo para identificar risco de fraude em uma transação bancária, classificação de imagens,
+previsão do PIB para o ano que vem;
+
+• Causalidade: aumento de imposto sobre cigarro e redução no consumo.
+
+12.1 Modelo Linear
+    Vamos introduzir a estrutura de modelos no R a partir de modelos lineares. Trataremos do modelo linear
+para regressão e do modelo de regressão logística para classificação. O modelo de regressão é utilizado quando
+a variável de interesse (dependente ou target) é uma variável quantitativa contínua. Por exemplo, salários,
+preços, notas em um exame etc. Por outro lado, modelos de classificação são utilizados quando a variável
+de interesse é categórica. Por exemplo: uma pessoa tem ou não tem a doença X, o cliente pagou ou não o
+cartão de crédito, o usuário X é um robô ou uma pessoa etc.
+
+12.1.1 Regressão
+
+    Vamos começar com o modelo linear de regressão:
+
+        yi = β0 + β1x1i + β2x2i + ... + βkxki + εi, i = 1, ..., N,
+
+    Onde y é a variável dependente, xk é a k-ésima variável explicativa, βk é o parâmetro estimado para k-ésima
+variável e ε é o termo de erro.
+    A função lm() estima esse modelo pelo método denominado de mínimos quadrados ordinários (MQO). Antes
+de exemplificarmos o uso da função, vamos falar sobre a representação simbólica do modelo, ou seja, como
+especificar o modelo no R. Em geral, o modelo terá argumentos x e y, em que o usuário passa os dados nesses
+argumentos ou terá a estrutura de fórmula. Por ser o método menos usado no modelo linear, detalharemos a
+estrutura de fórmula. Na função lm(), é obrigatório passar-se um objeto da classe fórmula, ou algum objeto
+que possa ser convertido para uma fórmula. Por exemplo: para o modelo linear com duas variáveis (y e x)
+e uma constante, a fórmula correspondente é:
+
+f <- 'y ~ x'
+class(f)
+## [1] "character"
+
+class(as.formula(f))
+## [1] "formula"
+
+    Para mostrarmos as possibilidades de uso da fórmula de especificação do modelo, utilizaremos a base mtcars.
+Esta base traz o consumo de gasolina (mpg) e algumas outras características do veículo. Detalharemos cada
+variável explicativa conforme elas são usadas. No entanto, você pode olhar o help dessa base: ?mtcars. Para
+iniciarmos, utilizaremos a variável mpg (miles per galon) e a variável hp (Gross horsepower).
+
+| > data(mtcars)
+| > lm(mpg ~ hp, data = mtcars)
+
+##
+## Call:
+## lm(formula = mpg ~ hp, data = mtcars)
+##
+## Coefficients:
+## (Intercept) hp
+## 30.09886 -0.06823
+
+    Note que não houve especificação de uma constante. Automaticamente, o R inclui a constante. Você pode
+inclui-la explicitamente ou retirá-la:
+
+| > lm(mpg ~ hp + 1, data = mtcars)
+| > lm(mpg ~ hp + 0, data = mtcars)
+
+    Já temos uma pista de como incluir mais variáveis: basta “adicioná-las” com o símbolo +. Isto é, vamos
+incluir a variável am - Transmission (0 = automatic, 1 = manual) - no modelo:
+
+| > lm(mpg ~ hp + am, data = mtcars)
+| > #Se quiséssemos incluir todas as variáveis explicativas:
+| > lm(mpg ~ ., data = mtcars)
+
+#Interações:
+| > lm(mpg ~ hp + am + hp:am, data = mtcars)
+
+#Transformações:
+| > lm(log(mpg) ~ log(hp) + am, data = mtcars)
+
+##
+## Call:
+## lm(formula = log(mpg) ~ log(hp) + am, data = mtcars)
+##
+## Coefficients:
+## (Intercept) log(hp) am
+## 5.1196 -0.4591 0.1954
+
+    No entanto, algumas transformações podem se confundir com símbolos quem são usados na fórmula. No
+exemplo abaixo, abstraia os dados e foque no efeito resultante da fórmula:
+
+| > lm(mpg ~ (am + hp)^2 + hp^2, data = mtcars)
+
+##
+## Call:
+## lm(formula = mpg ~ (am + hp)^2 + hp^2, data = mtcars)
+##
+## Coefficients:
+## (Intercept) am hp am:hp
+## 26.6248479 5.2176534 -0.0591370 0.0004029
+
+    `(am + hp)^2`, em termos simbólicos, retorna *am + hp + am*hp* e hp^2 retorna hp. No caso em que um
+símbolo não pode ser usado diretamente, este deve ser usado dentro da função I():
+
+| > lm(mpg ~ hp + I(hp^2), data = mtcars)
+
+##
+## Call:
+## lm(formula = mpg ~ hp + I(hp^2), data = mtcars)
+##
+## Coefficients:
+## (Intercept) hp I(hp^2)
+## 40.4091172 -0.2133083 0.0004208
+
+    Variáveis categóricas são convertidas automaticamente para dummies. Por exemplo, vamos adicionar uma
+variável fictícia chamada cat, que receberá valores a, b e c ao data.frame mtcars:
+
+| > library(dplyr)
+| > mtcars <- mutate(mtcars,
+| > cat = sample(c("a", "b", "c"),
+| > size = nrow(mtcars), replace = TRUE))
+| > lm(mpg ~ hp + cat, data = mtcars)
+
+##
+## Call:
+## lm(formula = mpg ~ hp + cat, data = mtcars)
+##
+## Coefficients:
+## (Intercept) hp catb catc
+## 29.1156 -0.0703 0.8474 2.2942
+
+    Falta agora discutir os principais argumentos da função lm():
+
+    ° lm(formula, data, subset, weights, na.action,
+    ° method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
+    ° singular.ok = TRUE, contrasts = NULL, offset, ...)
+
+    O argumento formula já foi discutido anteriormente. É neste argumento que o modelo é especificado. O
+argumento data recebe (opcionalmente) um data.frame com os dados. O parâmetro data é opcional, porque
+você pode passar diretamente os vetores de dados. Por exemplo:
+
+| > lm(log(mtcars$mpg) ~ log(mtcars$hp))
+
+##
+## Call:
+## lm(formula = log(mtcars$mpg) ~ log(mtcars$hp))
+##
+## Coefficients:
+## (Intercept) log(mtcars$hp)
+## 5.5454 -0.5301
+
+    Continuando, há possibilidade de estimar-se o modelo para um subconjunto dos dados, sendo necessário
+informar um vetor que selecione as observações que entrarão na estimação, no argumento subset. No exemplo
+que estamos utilizando, suponha que você queira estimar o modelo apenas para os carros automáticos:
+
+| > lm(mpg ~ hp, data = mtcars, subset = (am == 0))
+##
+## Call:
+## lm(formula = mpg ~ hp, data = mtcars, subset = (am == 0))
+##
+## Coefficients:
+## (Intercept) hp
+## 26.62485 -0.05914
+| > lm(mpg ~ hp, data = mtcars, subset = (am == 1))
+##
+## Call:
+## lm(formula = mpg ~ hp, data = mtcars, subset = (am == 1))
+##
+## Coefficients:
+## (Intercept) hp
+## 31.84250 -0.05873
+
+    Há também a possibilidade de utilizar-se um vetor de pesos no argumento weight para a estimação de
+mínimos quadrados ordinários.
+    Para ver-se um sumário dos resultados da estimação, utiliza-se a função summary():
+
+| > summary(lm(mpg ~ hp, data = mtcars))
+##
+## Call:
+## lm(formula = mpg ~ hp, data = mtcars)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -5.7121 -2.1122 -0.8854 1.5819 8.2360
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 30.09886 1.63392 18.421 < 2e-16 ***
+## hp -0.06823 0.01012 -6.742 1.79e-07 ***
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 3.863 on 30 degrees of freedom
+## Multiple R-squared: 0.6024, Adjusted R-squared: 0.5892
+## F-statistic: 45.46 on 1 and 30 DF, p-value: 1.788e-07
+
+12.1.1.1 Acessando os resultados
+    Além do resumo, é possível acessar uma série de objetos gerados pela função lm(), como coeficientes, resíduos,
+valores preditos (dentro do conjunto de estimação) etc. Primeiro, vamos listar esses elementos:
+
+| > fit <- lm(mpg ~ hp, data = mtcars)
+| > is.list(fit)
+
+## [1] TRUE
+
+| > ls(fit)
+
+## [1] "assign" "call" "coefficients" "df.residual"
+## [5] "effects" "fitted.values" "model" "qr"
+## [9] "rank" "residuals" "terms" "xlevels"
+
+    Como se trata de uma lista, podemos acessar os objetos usando o $.
+
+| > fit$coefficients
+
+## (Intercept) hp
+## 30.09886054 -0.06822828
+
+| > fit$residuals[1:10]
+
+## 1 2 3 4 5 6
+## -1.5937500 -1.5937500 -0.9536307 -1.1937500 0.5410881 -4.8348913
+## 7 8 9 10
+## 0.9170676 -1.4687073 -0.8171741 -2.5067823
+
+    Também existem funções para se acessar esses resultados:
+
+| > coefficients(fit)
+
+## (Intercept) hp
+## 30.09886054 -0.06822828
+
+| > residuals(fit)[1:5]
+
+## 1 2 3 4 5
+## -1.5937500 -1.5937500 -0.9536307 -1.1937500 0.5410881
+
+12.1.1.2 Predições
+    No R, para realizar-se predições, utiliza-se a função predict(), que é uma função genérica. Isso significa
+que os seus argumentos e os valores retornados dependem da classe do objeto que estamos passando. No
+caso de um objeto da classe lm, é suficiente passar o próprio objeto.
+    Abaixo está um exemplo do seu uso:
+
+| > set.seed(13034) # para replicação 70% dos dados
+| > idx <- sample(nrow(mtcars), size = 0.7*nrow(mtcars), replace = FALSE)
+| > train <- mtcars[idx, ]
+| > test <- mtcars[-idx, ]
+
+| > # 2 Modelos
+| > fit1 <- lm(mpg ~ hp, data = train)
+| > fit2 <- lm(mpg ~ hp + am + disp, data = train)
+
+| > # Predições
+| > pred1 <- predict(fit1, newdata = test[,-1])
+| > pred2 <- predict(fit2, newdata = test[,-1])
+
+| > # Comparando Root Mean Square Errors
+| > library(ModelMetrics)
+| > rmse(pred1, test[, "mpg"])
+
+## [1] 3.785694
+
+| > rmse(pred2, test[, "mpg"])
+## [1] 3.004418
+
+12.1.2 Classificação
+    Como já mencionado, quando a variável de interesse é categórica, utilizamos modelos de classificação. O
+modelo linear mais conhecido é o chamado Regressão Logística.
+    Suponha que queremos prever se uma pessoa irá ou não pagar a fatura do cartão de crédito. Definimos como
+p a probabilidade da pessoa não pagar e como razão de chance (_odds ratio) o valor p/1−p. A função logit, 
+por sua vez, é definida como:
+
+    logit(p) = log (p/(1−p))
+
+    Sendo y a nossa variável dependente, vamos definir que ela recebe valor 1 se o cliente não paga e 0 caso
+contrário. Logo, o modelo linear para o logit é definido como:
+
+    logit(p(y = 1|X)) = β0 + β1x1i + β2x2i + ... + βkxki
+
+    Os parâmetros β′s são obtidos a partir de métodos de otimização em que o objetivo minimizar é uma função
+de perda determinada. Note que a probabilidade de ocorrência do evento pode ser calculada como:
+
+p(y = 1|X) = e^β0+β1x1i+β2x2i+...+βkxki
+            ------------------------------
+            1 + e^β0+β1x1i+β2x2i+...+βkxki
+
+    Um detalhe importante sobre a regressão logística é que este modelo se enquadra na classe de modelos
+lineares generalizados (generalized linear models - glm). Logo, este modelo pode ser estimado a partir da
+função glm(), escolhendo a família binomial no argumento family.
+    O exemplo a seguir vem do livro An Introduction to Statistical Learning with Application in R. Utilizaremos
+o pacote ISLR e o conjunto de dados Smarket (?Smarket). Essa base traz informações sobre as variações do
+índice S&P 500 entre 2001 e 2005. Este índice é composto por 500 ativos negociados na NYSE ou Nasdaq.
+
+| > library(ISLR)
+| > data("Smarket")
+| > head(Smarket)
+
+## Year Lag1 Lag2 Lag3 Lag4 Lag5 Volume Today Direction
+## 1 2001 0.381 -0.192 -2.624 -1.055 5.010 1.1913 0.959 Up
+## 2 2001 0.959 0.381 -0.192 -2.624 -1.055 1.2965 1.032 Up
+## 3 2001 1.032 0.959 0.381 -0.192 -2.624 1.4112 -0.623 Down
+## 4 2001 -0.623 1.032 0.959 0.381 -0.192 1.2760 0.614 Up
+## 5 2001 0.614 -0.623 1.032 0.959 0.381 1.2057 0.213 Up
+## 6 2001 0.213 0.614 -0.623 1.032 0.959 1.3491 1.392 Up
+
+    A base consiste em nove variáveis. A variável de interesse é Direction e outras cinco variáveis serão usadas
+como variáveis explicativas ou preditores. Inicialmente, separaremos nossos dados em treino e teste. Como
+trata-se de um problema de série temporal, utilizaremos a variável Year para separar os dados.
+
+| > train <- Smarket %>%
+| > filter(Year <= 2004) %>%
+| > select(-Year)
+| > test <- Smarket %>%
+| > filter(Year == 2005) %>%
+| > select(-Year)
+
+    Agora vamos estimar o modelo:
+
+| > fit <- glm(Direction ~ . -Today, data = train, family = binomial())
+| > summary(fit)
+
+##
+## Call:
+## glm(formula = Direction ~ . - Today, family = binomial(), data = train)
+##
+## Deviance Residuals:
+## Min 1Q Median 3Q Max
+## -1.302 -1.190 1.079 1.160 1.350
+##
+## Coefficients:
+## Estimate Std. Error z value Pr(>|z|)
+## (Intercept) 0.191213 0.333690 0.573 0.567
+## Lag1 -0.054178 0.051785 -1.046 0.295
+## Lag2 -0.045805 0.051797 -0.884 0.377
+## Lag3 0.007200 0.051644 0.139 0.889
+## Lag4 0.006441 0.051706 0.125 0.901
+## Lag5 -0.004223 0.051138 -0.083 0.934
+## Volume -0.116257 0.239618 -0.485 0.628
+##
+## (Dispersion parameter for binomial family taken to be 1)
+##
+## Null deviance: 1383.3 on 997 degrees of freedom
+## Residual deviance: 1381.1 on 991 degrees of freedom
+## AIC: 1395.1
+##
+## Number of Fisher Scoring iterations: 3
+
+    As predições são realizadas com a função predict(), mas com o detalhe de que temos que escolher o tipo
+de predição. O default, link, passará o logit. Isto é, o valor da predição linear. Já response estimará a
+probabilidade da observação do evento de interesse.    
+    Por fim, terms retorna uma matriz com a predição linear para cada variável explicativa. O nosso interesse 
+é na probabilidade do mercado ter subido, logo, usaremos o tipo response e transformaremos a probabilidade 
+em Up e Down.
+
+| > pred <- predict(fit, test, type = 'response')
+| > pred <- ifelse(pred > 0.5, "Up", "Down")
+| > pred <- factor(pred, levels = c("Down", "Up"))
+    
+    Abaixo avaliamos o erro de classificação, que é de, aproximadamente, 52%. Ou seja, pior do que um chute
+aleatório.
+
+# Taxa de erro
+| >ce(test$Direction, pred)
+
+## [1] 0.5198413
+
+    Os autores, então, sugerem estimar-se o modelo com apenas duas variáveis.
+
+| > fit <- glm(Direction ~ Lag1 + Lag2, data = train, family = binomial())
+| > pred <- predict(fit, test, type = 'response')
+| > pred <- ifelse(pred > 0.5, "Up", "Down")
+| > pred <- factor(pred, levels = c("Down", "Up"))
+# Taxa de erro
+
+| > ce(test$Direction, pred)
+## [1] 0.4404762
+
+    Nesse caso, o modelo acertaria 56% das vezes.
